@@ -22,26 +22,26 @@ class PoseComponent extends PositionComponent with HasGameRef {
   late Timer animationTimer;
   double animationValue = 0.0;
 
-  // 添加编辑模式控制
+  // Add edit mode control
   bool isEditMode = false;
   
-  // 添加方向角度（弧度）
+  // Add direction angle (radians)
   double direction = 0.0;
   
-  // 添加姿态变化回调
+  // Add pose change callback
   Function(RobotPose)? onPoseChanged;
 
-  // 存储导航点信息
+  // Store navigation point information
   NavPoint? navPoint;
   
-  // 存储占用地图信息
+  // Store occupancy map information
   OccupancyMap? occMap;
   
-  // 添加RosChannel引用
+  // Add RosChannel reference
   RosChannel? rosChannel;
   PoseType poseType;
   
-  // 组件内处理手势，无需对外状态
+  // Handle gestures within component, no external state needed
   PoseComponent({
     required this.PoseComponentSize,
     this.color = const Color(0xFF0080ff),
@@ -62,13 +62,13 @@ class PoseComponent extends PositionComponent with HasGameRef {
     animationTimer = Timer(
       2.0,
       onTick: () {
-        // 重置动画值
+        // Reset animation values
         animationValue = 0.0;
       },
       repeat: true,
     );
     
-    // 添加渲染器
+    // Add renderer
     add(PoseComponentRenderer(
       size: PoseComponentSize,
       color: color,
@@ -77,17 +77,17 @@ class PoseComponent extends PositionComponent with HasGameRef {
       poseType: poseType,
     ));
     
-    // 根据编辑模式与选中状态控制方向环
+    // Control direction ring based on edit mode and selection state
     _updateDirectionControlVisibility();
   }
 
   @override
   void update(double dt) {
     animationTimer.update(dt);
-    // 直接使用progress，确保动画值在0到1之间
+    // Use progress directly, ensure animation value is between 0 and 1
     animationValue = animationTimer.progress;
     
-    // 同步更新渲染器的动画值
+    // Synchronously update renderer animation value
     final renderer = children.whereType<PoseComponentRenderer>().firstOrNull;
     if (renderer != null) {
       renderer.updateAnimationValue(animationValue);
@@ -105,7 +105,7 @@ class PoseComponent extends PositionComponent with HasGameRef {
   }
 
   void updatePose(RobotPose pose) {
-    // 优先使用传入的occMap，如果没有则从RosChannel获取
+    // Prioritize passed occMap, if none then get from RosChannel
     OccupancyMap? currentMap = occMap;
     if (currentMap == null && rosChannel != null) {
       currentMap = rosChannel!.map_.value;
@@ -115,27 +115,27 @@ class PoseComponent extends PositionComponent with HasGameRef {
       var occPose = currentMap.xy2idx(vm.Vector2(pose.x, pose.y));
       position = Vector2(occPose.x, occPose.y);
     } else {
-      // 如果没有地图数据，直接使用原始坐标
+      // If no map data, use original coordinates directly
       position = Vector2(pose.x, pose.y);
     }
     direction = -pose.theta;
   }
 
-  // 更新方向角度
+  // Update direction angle
   void updatedirection(double newAngle) {
     direction = newAngle;
     
-    // 同步更新DirectionControl的角度
+    // Synchronously update DirectionControl angle
     final directionControl = children.whereType<DirectionControl>().firstOrNull;
     if (directionControl != null) {
       directionControl.updateAngle(direction);
     }
   
-    // 触发姿态变化回调
+    // Trigger pose change callback
     _triggerPoseChangedCallback();
   }
   
-  // 静默设置角度，避免回调递归
+  // Set angle silently to avoid callback recursion
   void _setAngleSilent(double newAngle) {
     direction = newAngle;
     final renderer = children.whereType<DirectionControlRenderer>().firstOrNull;
@@ -144,7 +144,7 @@ class PoseComponent extends PositionComponent with HasGameRef {
     }
   }
   
-  // 对外暴露：直接设置角度（静默）
+  // Public interface: directly set angle (silent)
   void setAngleDirect(double newAngle) {
     _setAngleSilent(newAngle);
   }
@@ -154,7 +154,7 @@ class PoseComponent extends PositionComponent with HasGameRef {
   }
 
   
-  // 设置编辑模式（地图编辑工具控制）
+  // Set edit mode (controlled by map editing tool)
   void setEditMode(bool edit) {
     if (isEditMode == edit) return;
     isEditMode = edit;
@@ -175,26 +175,26 @@ class PoseComponent extends PositionComponent with HasGameRef {
       }
     } else {
       if (exists != null) {
-        // 在移除前先重置手势状态
+        // Reset gesture state before removal
         exists._resetDragState();
         exists.removeFromParent();
       }
     }
   }
   
-  // 设置导航点信息
+  // Set navigation point information
   void setNavPoint(NavPoint point) {
     navPoint = point;
   }
   
-  // 设置占用地图信息
+  // Set occupancy map information
   void setOccMap(OccupancyMap map) {
     occMap = map;
   }
   
-  // 获取占用地图信息
+  // Get occupancy map information
   OccupancyMap? getOccMap() {
-    // 优先返回传入的occMap，如果没有则从RosChannel获取
+    // Prioritize returning passed occMap, get from RosChannel if none
     if (occMap != null) {
       return occMap;
     }
@@ -204,10 +204,10 @@ class PoseComponent extends PositionComponent with HasGameRef {
     return null;
   }
   
-  // 触发姿态变化回调
+  // Trigger pose change callback
   void _triggerPoseChangedCallback() {
     if (onPoseChanged != null) {
-      // 创建RobotPose对象，包含当前位置和方向
+      // Create RobotPose object containing current position and direction
       var occMap = getOccMap();
       double mapPosex=0;
       double mapPosey=0;
@@ -217,35 +217,35 @@ class PoseComponent extends PositionComponent with HasGameRef {
         mapPosey=p.y;
       }
       final robotPose = RobotPose(
-        mapPosex,  // x坐标
-        mapPosey,  // y坐标
-        -direction,   // 方向角度
+        mapPosex,  // x coordinate
+        mapPosey,  // y coordinate
+        -direction,   // direction angle
       );
       onPoseChanged!(robotPose);
     }
   }
   
-  // 设置RosChannel引用
+  // Set RosChannel reference
   void setRosChannel(RosChannel channel) {
     rosChannel = channel;
   }
   
 }
 
-// 方向控制组件
+// Direction control component
 class DirectionControl extends PositionComponent with DragCallbacks {
   final double controlSize;
   final Function(double) onDirectionChanged;
   final double initAngle;
   
   double _currentAngle = 0.0;
-  bool _isUpdating = false; // 防止重复调用
+  bool _isUpdating = false; // Prevent duplicate calls
   Vector2? _lastMousePosition;
   bool _isRotating = false;
   bool _isPositionDragging = false;
   Vector2? _positionDragStart;
   
-  // 手势区域检测在方法中动态计算
+  // Gesture area detection is dynamically calculated in methods
 
   DirectionControl({
     required this.controlSize,
@@ -268,7 +268,7 @@ class DirectionControl extends PositionComponent with DragCallbacks {
   @override
   void onRemove() {
     super.onRemove();
-    // 确保在移除时重置所有手势状态
+    // Ensure all gesture states are reset during removal
     _resetDragState();
   }
  
@@ -277,11 +277,11 @@ class DirectionControl extends PositionComponent with DragCallbacks {
   bool onDragStart(DragStartEvent event) {
     super.onDragStart(event);
     
-    // 检查父组件是否处于编辑模式
+    // Check if parent component is in edit mode
     if (parent is PoseComponent) {
       final poseComponent = parent as PoseComponent;
       if (!poseComponent.isEditMode) {
-        return false; // 不在编辑模式时不拦截手势
+        return false; // Don't intercept gestures when not in edit mode
       }
     }
     
@@ -290,13 +290,13 @@ class DirectionControl extends PositionComponent with DragCallbacks {
     final distance = (event.localPosition - center).length;
     final ringRadius = controlSize / 2;
     if (distance <= ringRadius / 2) {
-      // 中心区域：位置拖拽
+      // Center area: position dragging
       _isRotating = false;
       _isPositionDragging = true;
       _positionDragStart = event.localPosition;
       return true;
     } else if (distance <= ringRadius + 2) {
-      // 外圈：旋转
+      // Outer ring: rotation
       _isRotating = true;
       _isPositionDragging = false;
       return true;
@@ -308,11 +308,11 @@ class DirectionControl extends PositionComponent with DragCallbacks {
   bool onDragUpdate(DragUpdateEvent event) {
     super.onDragUpdate(event);
     
-    // 检查父组件是否处于编辑模式
+    // Check if parent component is in edit mode
     if (parent is PoseComponent) {
       final poseComponent = parent as PoseComponent;
       if (!poseComponent.isEditMode) {
-        return false; // 不在编辑模式时不拦截手势
+        return false; // Don't intercept gestures when not in edit mode
       }
     }
     
@@ -336,7 +336,7 @@ class DirectionControl extends PositionComponent with DragCallbacks {
         final poseComponent = parent as PoseComponent;
         final delta = event.localDelta;
         poseComponent.position = poseComponent.position + delta;
-        // 触发姿态变化回调
+        // Trigger pose change callback
         poseComponent._triggerPoseChangedCallback();
       }
       return true;
@@ -348,11 +348,11 @@ class DirectionControl extends PositionComponent with DragCallbacks {
   bool onDragEnd(DragEndEvent event) {
     super.onDragEnd(event);
     
-    // 检查父组件是否处于编辑模式
+    // Check if parent component is in edit mode
     if (parent is PoseComponent) {
       final poseComponent = parent as PoseComponent;
       if (!poseComponent.isEditMode) {
-        return false; // 不在编辑模式时不拦截手势
+        return false; // Don't intercept gestures when not in edit mode
       }
     }
     
@@ -360,7 +360,7 @@ class DirectionControl extends PositionComponent with DragCallbacks {
     return true;
   }
 
-  // 重置拖拽状态
+  // Reset drag state
   void _resetDragState() {
     _lastMousePosition = null;
     _isRotating = false;
@@ -368,20 +368,20 @@ class DirectionControl extends PositionComponent with DragCallbacks {
     _positionDragStart = null;
   }
   
-  // 更新角度（由外部手势处理调用）
+  // Update angle (called by external gesture handling)
   void updateAngle(double newAngle) {
     
     if (_isUpdating) {
-      return; // 防止重复调用
+      return; // Prevent duplicate calls
     }
     
     _isUpdating = true;
     _currentAngle = newAngle;
     
-    // 通知父组件更新方向角度
+    // Notify parent component to update direction angle
     onDirectionChanged(_currentAngle);
     
-    // 更新渲染器
+    // Update renderer
     final renderer = children.whereType<DirectionControlRenderer>().firstOrNull;
     if (renderer != null) {
       renderer.updateAngle(_currentAngle);
@@ -391,7 +391,7 @@ class DirectionControl extends PositionComponent with DragCallbacks {
   }
 }
 
-// 方向控制渲染器
+// Direction control renderer
 class DirectionControlRenderer extends Component {
   final double size;
   double angle;
@@ -407,12 +407,12 @@ class DirectionControlRenderer extends Component {
   
   @override
   void render(Canvas canvas) {
-    // 计算绘制起始点，使圆环以点位为中心
+    // Calculate drawing start point to center the ring around the point
     final center = Offset(size / 2, size / 2);
-    final radius = size / 2; // 调整半径，确保圆环能包裹点位
+    final radius = size / 2; // Adjust radius to ensure ring wraps around the point
     canvas.save();
     // canvas.translate(-size / 2, -size / 2);
-    // 绘制主圆圈
+    // Draw main circle
     final circlePaint = Paint()
       ..color = Colors.blue.withOpacity(0.6)
       ..style = PaintingStyle.stroke
@@ -420,7 +420,7 @@ class DirectionControlRenderer extends Component {
     
     canvas.drawCircle(center, radius, circlePaint);
     
-    // 绘制方向指示点
+    // Draw direction indicator point
     final pointPaint = Paint()
       ..color = Colors.red
       ..style = PaintingStyle.fill;
@@ -435,12 +435,12 @@ class DirectionControlRenderer extends Component {
   }
 }
 
-// 路径点渲染器
+// Path point renderer
 class PoseComponentRenderer extends Component with HasGameRef {
   final double size;
   final Color color;
   final int count;
-  double animationValue; // 移除final，允许更新
+  double animationValue; // Remove final to allow updates
   final PoseType poseType;
 
   PoseComponentRenderer({
@@ -451,14 +451,14 @@ class PoseComponentRenderer extends Component with HasGameRef {
     required this.poseType,
   });
   
-  // 添加更新动画值的方法
+  // Add method to update animation value
   void updateAnimationValue(double value) {
     animationValue = value;
   }
 
   @override
   void render(Canvas canvas) {
-    // 添加安全检查
+    // Add safety check
     if (!isMounted) {
       return;
     }
@@ -466,22 +466,22 @@ class PoseComponentRenderer extends Component with HasGameRef {
     try {
       canvas.save();
       
-      // 获取父组件的方向角度
+      // Get parent component's direction angle
       final parentComponent = parent;
       if (parentComponent is PoseComponent) {
         final double rotationAngle = parentComponent.direction;
         
-        // 以组件中心为原点进行旋转和绘制
+        // Rotate and draw with component center as origin
         canvas.save();
         canvas.translate(size / 2, size / 2);
         canvas.rotate(rotationAngle);
         
-        // 绘制机器人坐标
+        // Draw robot coordinates
         double radius = min(size / 2, size / 2);
 
-        // 根据点位类型绘制不同的水波纹样式
+        // Draw different ripple styles based on point type
         if (poseType == PoseType.robot) {
-          // 机器人类型：绘制圆形水波纹
+          // Robot type: draw circular ripples
           for (int i = count; i >= 0; i--) {
             final double opacity = (1.0 - ((i + animationValue) / (count + 1)));
             final paint = Paint()
@@ -492,7 +492,7 @@ class PoseComponentRenderer extends Component with HasGameRef {
             canvas.drawCircle(Offset.zero, _radius, paint);
           }
         } else {
-          // 导航点类型：绘制菱形水波纹
+          // Navigation point type: draw diamond ripples
           for (int i = count; i >= 0; i--) {
             final double opacity = (1.0 - ((i + animationValue) / (count + 1)));
             final paint = Paint()
@@ -501,22 +501,22 @@ class PoseComponentRenderer extends Component with HasGameRef {
 
             double _radius = radius * ((i + animationValue) / (count + 1));
 
-            // 计算菱形的四个顶点，中心点在(0, 0)
+            // Calculate diamond's four vertices with center at (0, 0)
             final path = Path()
-              ..moveTo(_radius, 0) // 右顶点
-              ..lineTo(0, _radius) // 下顶点
-              ..lineTo(-_radius, 0) // 左顶点
-              ..lineTo(0, -_radius) // 上顶点
-              ..close(); // 闭合路径
+              ..moveTo(_radius, 0) // Right vertex
+              ..lineTo(0, _radius) // Bottom vertex
+              ..lineTo(-_radius, 0) // Left vertex
+              ..lineTo(0, -_radius) // Top vertex
+              ..close(); // Close path
 
-            // 绘制路径
+            // Draw path
             canvas.drawPath(path, paint);
           }
         }
 
-        // 根据点位类型绘制不同的中心样式
+        // Draw different center styles based on point type
         if (poseType == PoseType.robot) {
-          // 机器人类型：绘制圆形中心，添加轻微的脉动动画
+          // Robot type: draw circular center with slight pulse animation
           final double centerPulse = 1.0 + 0.1 * sin(animationValue * 4 * pi);
           final centerPaint = Paint()
             ..color = color.withOpacity(0.8 + 0.2 * sin(animationValue * 2 * pi))
@@ -525,24 +525,24 @@ class PoseComponentRenderer extends Component with HasGameRef {
           final centerRadius = radius / 3 * centerPulse;
           canvas.drawCircle(Offset.zero, centerRadius, centerPaint);
         } else {
-          // 导航点类型：绘制菱形中心，添加轻微的脉动动画
+          // Navigation point type: draw diamond center with slight pulse animation
           final double centerPulse = 1.0 + 0.1 * sin(animationValue * 4 * pi);
           final centerPaint = Paint()
             ..color = color.withOpacity(0.8 + 0.2 * sin(animationValue * 2 * pi))
             ..style = PaintingStyle.fill;
           
           final centerPath = Path()
-            ..moveTo(radius / 3 * centerPulse, 0) // 右顶点
-            ..lineTo(0, radius / 3 * centerPulse) // 下顶点
-            ..lineTo(-radius / 3 * centerPulse, 0) // 左顶点
-            ..lineTo(0, -radius / 3 * centerPulse) // 上顶点
-            ..close(); // 闭合路径
+            ..moveTo(radius / 3 * centerPulse, 0) // Right vertex
+            ..lineTo(0, radius / 3 * centerPulse) // Bottom vertex
+            ..lineTo(-radius / 3 * centerPulse, 0) // Left vertex
+            ..lineTo(0, -radius / 3 * centerPulse) // Top vertex
+            ..close(); // Close path
 
-          // 绘制路径
+          // Draw path
           canvas.drawPath(centerPath, centerPaint);
         }
 
-        // 绘制方向指示器，中心点在(0, 0)
+        // Draw direction indicator with center at (0, 0)
         Paint dirPainter = Paint()
           ..style = PaintingStyle.fill
           ..color = color.withOpacity(0.6);
@@ -551,7 +551,7 @@ class PoseComponentRenderer extends Component with HasGameRef {
             center: Offset.zero, radius: radius);
         canvas.drawArc(rect, -deg2rad(15), deg2rad(30), true, dirPainter);
         
-        canvas.restore(); // 恢复旋转变换
+        canvas.restore(); // Restore rotation transform
       }
       
       canvas.restore();

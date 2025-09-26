@@ -70,7 +70,7 @@ class TopologyLineRenderer extends Component with HasGameRef {
     required this.animationValue,
   });
 
-  // 获取当前地图数据
+  // Get current map data
   OccupancyMap? get currentMap {
     if (occMap != null) {
       return occMap;
@@ -81,17 +81,17 @@ class TopologyLineRenderer extends Component with HasGameRef {
     return null;
   }
 
-  // 获取地图分辨率
+  // Get map resolution
   double get mapResolution => currentMap?.mapConfig.resolution ?? 0.05;
 
-  // 获取地图原点
+  // Get map origin
   Offset get mapOrigin => currentMap != null 
       ? Offset(currentMap!.mapConfig.originX, currentMap!.mapConfig.originY)
       : Offset.zero;
 
   @override
   void render(Canvas canvas) {
-    // 添加安全检查
+    // Add safety check
     if (!isMounted) {
       return;
     }
@@ -103,7 +103,7 @@ class TopologyLineRenderer extends Component with HasGameRef {
 
       final currentMapData = currentMap;
       if (currentMapData == null) {
-        return; // 没有地图数据时不渲染
+        return; // Don't render when there's no map data
       }
 
       final Map<String, Offset> pointMap = {};
@@ -112,14 +112,14 @@ class TopologyLineRenderer extends Component with HasGameRef {
         pointMap[point.name] = Offset(occPose.x, occPose.y);
       }
 
-      // 统计每条路径的连接数量以判断是否为双向
+      // Count connections for each path to determine if bidirectional
       final Map<String, List<TopologyRoute>> connectionMap = {};
       for (final route in routes) {
         final key = _getConnectionKey(route.fromPoint, route.toPoint);
         connectionMap.putIfAbsent(key, () => []).add(route);
       }
 
-      // 绘制路径
+      // Draw paths
       for (final entry in connectionMap.entries) {
         final routeList = entry.value;
         final firstRoute = routeList.first;
@@ -148,7 +148,7 @@ class TopologyLineRenderer extends Component with HasGameRef {
   }
 
   Map<String, Offset> _adjustLineToPointEdges(Offset from, Offset to) {
-    const double pointRadius = 2.0; // 点位两端缩短距离
+    const double pointRadius = 2.0; // Shorten distance at both ends of points
     
     final direction = to - from;
     final distance = direction.distance;
@@ -159,7 +159,7 @@ class TopologyLineRenderer extends Component with HasGameRef {
     
     final normalizedDirection = direction / distance;
     
-    // 调整起点和终点，使线段从点位边缘开始
+    // Adjust start and end points so line segments start from point edges
     final adjustedFrom = from + normalizedDirection * pointRadius;
     final adjustedTo = to - normalizedDirection * pointRadius;
     
@@ -167,22 +167,22 @@ class TopologyLineRenderer extends Component with HasGameRef {
   }
 
   void _drawUnidirectionalPath(Canvas canvas, Offset from, Offset to, Paint paint) {
-    // 缩短线段到点位边缘
+    // Shorten line segment to point edge
     final adjustedPoints = _adjustLineToPointEdges(from, to);
     final adjustedFrom = adjustedPoints['from']!;
     final adjustedTo = adjustedPoints['to']!;
     
-    // 绘制底层路径
-    paint.color = Color(0xFF6B7280).withOpacity(0.4); // 现代灰色
+    // Draw base path
+    paint.color = Color(0xFF6B7280).withOpacity(0.4); // Modern gray
     paint.strokeWidth = 1.0;
     canvas.drawLine(adjustedFrom, adjustedTo, paint);
     
-    // 绘制箭头流动效果
-    _drawArrowFlow(canvas, adjustedFrom, adjustedTo, paint, Color(0xFF3B82F6), 0); // 现代蓝色
+    // Draw arrow flow effect
+    _drawArrowFlow(canvas, adjustedFrom, adjustedTo, paint, Color(0xFF3B82F6), 0); // Modern blue
   }
 
   void _drawBidirectionalPath(Canvas canvas, Offset from, Offset to, Paint paint) {
-    // 缩短线段到点位边缘
+    // Shorten line segment to point edge
     final adjustedPoints = _adjustLineToPointEdges(from, to);
     final adjustedFrom = adjustedPoints['from']!;
     final adjustedTo = adjustedPoints['to']!;
@@ -196,14 +196,14 @@ class TopologyLineRenderer extends Component with HasGameRef {
     final line2Start = adjustedFrom - offset;
     final line2End = adjustedTo - offset;
 
-    // 绘制底层路径
-    paint.color = Color(0xFF6B7280).withOpacity(0.4); // 现代灰色
+    // Draw base path
+    paint.color = Color(0xFF6B7280).withOpacity(0.4); // Modern gray
     paint.strokeWidth = 1.0;
     canvas.drawLine(line1Start, line1End, paint);
     canvas.drawLine(line2Start, line2End, paint);
 
-    // 绘制箭头流动效果
-    _drawArrowFlow(canvas, line1Start, line1End, paint, Color(0xFF10B981), 0); // 现代绿色
+    // Draw arrow flow effect
+    _drawArrowFlow(canvas, line1Start, line1End, paint, Color(0xFF10B981), 0); // Modern green
     _drawArrowFlow(canvas, line2End, line2Start, paint, Color(0xFF10B981), 0.5);
   }
 
@@ -215,29 +215,29 @@ class TopologyLineRenderer extends Component with HasGameRef {
     final normalizedDirection = direction / distance;
     final perpendicular = Offset(-normalizedDirection.dy, normalizedDirection.dx);
     
-    // 箭头参数
+    // Arrow parameters
     final arrowSpacing = 10.0;
-    final triangleSize = 1.0; // 三角形大小，确保在路径内
+    final triangleSize = 1.0; // Triangle size, ensure within path
     
-    // 动画偏移（修正方向）
+    // Animation offset (correct direction)
     double animationOffset = animationValue * arrowSpacing % arrowSpacing;
     
-    // 绘制流动三角形
+    // Draw flowing triangles
     double currentDistance = animationOffset;
     
     while (currentDistance < distance) {
       if (currentDistance > triangleSize && currentDistance < distance - triangleSize) {
         final triangleCenter = start + normalizedDirection * currentDistance;
         
-        // 计算三角形透明度
+        // Calculate triangle opacity
         final distanceRatio = currentDistance / distance;
         final opacity = (0.8 - distanceRatio * 0.3).clamp(0.0, 1.0);
         
-        // 绘制实心三角形
+        // Draw solid triangle
         final trianglePoints = [
-          triangleCenter + normalizedDirection * triangleSize, // 前端点
-          triangleCenter - normalizedDirection * triangleSize * 0.5 + perpendicular * triangleSize * 0.5, // 左后点
-          triangleCenter - normalizedDirection * triangleSize * 0.5 - perpendicular * triangleSize * 0.5, // 右后点
+          triangleCenter + normalizedDirection * triangleSize, // Front point
+          triangleCenter - normalizedDirection * triangleSize * 0.5 + perpendicular * triangleSize * 0.5, // Left rear point
+          triangleCenter - normalizedDirection * triangleSize * 0.5 - perpendicular * triangleSize * 0.5, // Right rear point
         ];
         
         final path = Path();

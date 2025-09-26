@@ -60,15 +60,15 @@ class DiagnosticStatus {
   String get levelDisplayName {
     switch (level) {
       case OK:
-        return '正常';
+        return 'OK';
       case WARN:
-        return '警告';
+        return 'Warning';
       case ERROR:
-        return '错误';
+        return 'Error';
       case STALE:
-        return '过期';
+        return 'Stale';
       default:
-        return '未知';
+        return 'Unknown';
     }
   }
 }

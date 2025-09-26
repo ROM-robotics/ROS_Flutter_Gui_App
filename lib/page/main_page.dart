@@ -33,10 +33,10 @@ class _MainFlamePageState extends State<MainFlamePage> {
   bool showCamera = false;
   NavPoint? selectedNavPoint;
   
-  // 相机相关变量
-  Offset camPosition = Offset(30, 10); // 初始位置
-  bool isCamFullscreen = false; // 是否全屏
-  Offset camPreviousPosition = Offset(30, 10); // 保存进入全屏前的位置
+  // Camera-related variables
+  Offset camPosition = Offset(30, 10); // Initial position
+  bool isCamFullscreen = false; // Whether fullscreen
+  Offset camPreviousPosition = Offset(30, 10); // Save position before entering fullscreen
   late double camWidgetWidth;
   late double camWidgetHeight;
 
@@ -59,10 +59,10 @@ class _MainFlamePageState extends State<MainFlamePage> {
       });
     };
     
-    // 加载图层设置
+    // Load layer settings
     Provider.of<GlobalState>(context, listen: false).loadLayerSettings();
     
-    // 初始化相机尺寸
+    // Initialize camera dimensions
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final screenSize = MediaQuery.of(context).size;
@@ -71,32 +71,32 @@ class _MainFlamePageState extends State<MainFlamePage> {
       }
     });
     
-    // 监听诊断数据
+    // Listen for diagnostic data
     _setupDiagnosticListener();
   }
   
-  // 重新加载导航点和地图数据
+  // Reload navigation points and map data
   Future<void> _reloadData() async {
     await game.reloadNavPointsAndMap();
   }
 
-  // 设置诊断数据监听器
+  // Set up diagnostic data listener
   void _setupDiagnosticListener() {
     final rosChannel = Provider.of<RosChannel>(context, listen: false);
     
-    // 设置新错误/警告回调
+    // Set up new error/warning callback
     rosChannel.diagnosticManager.setOnNewErrorsWarnings(_onNewErrorsWarnings);
   }
 
 
-  // 新错误/警告/失活回调
+  // New error/warning/stale callback
   void _onNewErrorsWarnings(List<Map<String, dynamic>> newErrorsWarnings) {
     for (var errorWarning in newErrorsWarnings) {
       final hardwareId = errorWarning['hardwareId'] as String;
       final componentName = errorWarning['componentName'] as String;
       final state = errorWarning['state'] as DiagnosticState;
       
-      // 只对错误、警告和失活状态显示toast
+      // Only show toast for error, warning and stale states
       if (state.level == DiagnosticStatus.ERROR || 
           state.level == DiagnosticStatus.WARN || 
           state.level == DiagnosticStatus.STALE) {
@@ -105,7 +105,7 @@ class _MainFlamePageState extends State<MainFlamePage> {
     }
   }
 
-  // 显示诊断toast通知
+  // Show diagnostic toast notification
   void _showDiagnosticToast(String hardwareId, String componentName, DiagnosticState state) {
     if (!mounted) return;
     
@@ -116,32 +116,32 @@ class _MainFlamePageState extends State<MainFlamePage> {
     
     switch (state.level) {
       case DiagnosticStatus.WARN:
-        levelText = '警告';
+        levelText = 'Warning';
         levelColor = Colors.orange;
         toastType = ToastificationType.warning;
         iconData = Icons.warning;
         break;
       case DiagnosticStatus.ERROR:
-        levelText = '错误';
+        levelText = 'Error';
         levelColor = Colors.red;
         toastType = ToastificationType.error;
         iconData = Icons.error;
         break;
       case DiagnosticStatus.STALE:
-        levelText = '失活';
+        levelText = 'Stale';
         levelColor = Colors.grey;
         toastType = ToastificationType.info;
         iconData = Icons.schedule;
         break;
       default:
-        return; // 其他状态不显示toast
+        return; // Other statuses don't show toast
     }
     
     toastification.show(
       context: context,
       type: toastType,
-      title: Text('健康诊断:[$levelText] $componentName'),
-      description: Text('硬件ID: $hardwareId\n消息: ${state.message}'),
+      title: Text('Health Diagnostic: [$levelText] $componentName'),
+      description: Text('Hardware ID: $hardwareId\nMessage: ${state.message}'),
       autoCloseDuration: const Duration(seconds: 5),
       icon: Icon(
         iconData,
@@ -157,7 +157,7 @@ class _MainFlamePageState extends State<MainFlamePage> {
     return Scaffold(
           body: Stack(
             children: [
-              // 游戏画布
+              // Game canvas
               Listener(
                 onPointerSignal: (pointerSignal) {
                   if (pointerSignal is PointerScrollEvent) {
@@ -178,7 +178,7 @@ class _MainFlamePageState extends State<MainFlamePage> {
                     game.onScaleEnd();
                   },
                   onTapDown: (details) {
-                    // 处理点击事件，检测waypoint
+                    // Handle click events, detect waypoints
                     game.onTap(details.localPosition);
                   },
                   child: GameWidget(game: game),
@@ -206,7 +206,7 @@ class _MainFlamePageState extends State<MainFlamePage> {
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
-              // 线速度显示
+              // Linear velocity display
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4.0),
                 child: RawChip(
@@ -224,7 +224,7 @@ class _MainFlamePageState extends State<MainFlamePage> {
                   ),
                 ),
               ),
-              // 角速度显示
+              // Angular velocity display
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4.0),
                 child: RawChip(
@@ -240,7 +240,7 @@ class _MainFlamePageState extends State<MainFlamePage> {
                   ),
                 ),
               ),
-              // 电池电量显示
+              // Battery level display
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4.0),
                 child: RawChip(
@@ -258,7 +258,7 @@ class _MainFlamePageState extends State<MainFlamePage> {
                   ),
                 ),
               ),
-              // 导航状态显示
+              // Navigation status display
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4.0),
                 child: RawChip(
@@ -277,7 +277,7 @@ class _MainFlamePageState extends State<MainFlamePage> {
                   ),
                 ),
               ),
-              // 诊断状态显示
+              // Diagnostic status display
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4.0),
                 child: Consumer<RosChannel>(
@@ -290,16 +290,16 @@ class _MainFlamePageState extends State<MainFlamePage> {
                     
                     Color chipColor = Colors.green;
                     IconData chipIcon = Icons.check_circle;
-                    String chipText = '正常';
+                    String chipText = 'Normal';
                     
                     if (errorCount > 0) {
                       chipColor = Colors.red;
                       chipIcon = Icons.error;
-                      chipText = '错误: $errorCount';
+                      chipText = 'Error: $errorCount';
                     } else if (warnCount > 0) {
                       chipColor = Colors.orange;
                       chipIcon = Icons.warning;
-                      chipText = '警告: $warnCount';
+                      chipText = 'Warning: $warnCount';
                     }
                     
                     return  RawChip(
@@ -338,7 +338,7 @@ class _MainFlamePageState extends State<MainFlamePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 图层开关控制
+          // Layer toggle control
           Card(
             elevation: 10,
             child: Container(
@@ -355,69 +355,69 @@ class _MainFlamePageState extends State<MainFlamePage> {
                     },
                   ),
                   if (showLayerControl) ...[
-                    // 使用循环生成图层控制按钮
+                    // Use loop to generate layer control buttons
                     ...Provider.of<GlobalState>(context, listen: true).layerNames.map((layerName) {
-                      // 定义每个图层的图标和颜色配置
+                      // Define icon and color configuration for each layer
                       final layerConfig = <String, Map<String, dynamic>>{
                         'showGrid': {
                           'icon': Icons.grid_on,
                           'iconOff': Icons.grid_off,
                           'color': Colors.green,
-                          'tooltip': '网格图层',
+                          'tooltip': 'Grid Layer',
                         },
                         'showGlobalCostmap': {
                           'icon': Icons.map,
                           'iconOff': Icons.map_outlined,
                           'color': Colors.green,
-                          'tooltip': '全局代价地图',
+                          'tooltip': 'Global Costmap',
                         },
                         'showLocalCostmap': {
                           'icon': Icons.map_outlined,
                           'iconOff': Icons.map_outlined,
                           'color': Colors.green,
-                          'tooltip': '局部代价地图',
+                          'tooltip': 'Local Costmap',
                         },
                         'showLaser': {
                           'icon': Icons.radar,
                           'iconOff': Icons.radar_outlined,
                           'color': Colors.green,
-                          'tooltip': '激光雷达数据',
+                          'tooltip': 'Laser Data',
                         },
                         'showPointCloud': {
                           'icon': Icons.cloud,
                           'iconOff': Icons.cloud_outlined,
                           'color': Colors.green,
-                          'tooltip': '点云数据',
+                          'tooltip': 'Point Cloud Data',
                         },
                         'showGlobalPath': {
                           'icon': Icons.timeline,
                           'iconOff': Icons.timeline_outlined,
                           'color': Colors.blue,
-                          'tooltip': '全局路径',
+                          'tooltip': 'Global Path',
                         },
                         'showLocalPath': {
                           'icon': Icons.timeline,
                           'iconOff': Icons.timeline_outlined,
                           'color': Colors.green,
-                          'tooltip': '局部路径',
+                          'tooltip': 'Local Path',
                         },
                         'showTracePath': {
                           'icon': Icons.timeline,
                           'iconOff': Icons.timeline_outlined,
                           'color': Colors.yellow,
-                          'tooltip': '轨迹路径',
+                          'tooltip': 'Trace Path',
                         },
                         'showTopology': {
                           'icon': Icons.account_tree,
                           'iconOff': Icons.account_tree_outlined,
                           'color': Colors.orange,
-                          'tooltip': '拓扑地图',
+                          'tooltip': 'Topology Map',
                         },
                         'showRobotFootprint': {
                           'icon': Icons.smart_toy,
                           'iconOff': Icons.smart_toy_outlined,
                           'color': Colors.blue,
-                          'tooltip': '机器人轮廓',
+                          'tooltip': 'Robot Footprint',
                         },
                       };
                       
@@ -449,7 +449,7 @@ class _MainFlamePageState extends State<MainFlamePage> {
             ),
           ),
 
-          // 重定位工具
+          // Relocalization tool
           Card(
             elevation: 10,
             child: Container(
@@ -483,7 +483,7 @@ class _MainFlamePageState extends State<MainFlamePage> {
                       Mode.reloc) ...[
                     IconButton(
                       onPressed: () {
-                        // 确认重定位逻辑
+                        // Confirm relocation logic
                         Provider.of<GlobalState>(context, listen: false)
                             .mode
                             .value = Mode.normal;
@@ -495,7 +495,7 @@ class _MainFlamePageState extends State<MainFlamePage> {
                     ),
                     IconButton(
                       onPressed: () {
-                        // 取消重定位逻辑
+                        // Cancel relocation logic
                         Provider.of<GlobalState>(context, listen: false)
                             .mode
                             .value = Mode.normal;
@@ -512,7 +512,7 @@ class _MainFlamePageState extends State<MainFlamePage> {
           
           const SizedBox(height: 8),
           
-          // 显示相机图像
+          // Display camera image
           Card(
             elevation: 10,
             child: IconButton(
@@ -523,13 +523,13 @@ class _MainFlamePageState extends State<MainFlamePage> {
                   showCamera = !showCamera;
                 });
               },
-              tooltip: '相机图像',
+              tooltip: 'Camera Image',
             ),
           ),
           
           const SizedBox(height: 8),
           
-          // 手动控制
+          // Manual control
           Card(
             elevation: 10,
             child: IconButton(
@@ -573,10 +573,10 @@ class _MainFlamePageState extends State<MainFlamePage> {
       top: 30,
       child: Row(
         children: [
-          // 右侧信息面板
+          // Right side information panel
           if (game.showInfoPanel && selectedNavPoint != null)
             Container(
-              width: 300, // 固定宽度，不占满右侧
+              width: 300, // Fixed width, doesn't fill entire right side
               child: Card(
                 elevation: 16,
                 shadowColor: Colors.black.withOpacity(0.3),
@@ -596,19 +596,19 @@ class _MainFlamePageState extends State<MainFlamePage> {
                     ),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.all(20.0), // 减少内边距
+                    padding: const EdgeInsets.all(20.0), // Reduce padding
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min, // 根据内容自适应高度
+                      mainAxisSize: MainAxisSize.min, // Auto-size based on content
                       children: [
-                        // 标题栏
+                        // Title bar
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.all(6), // 减少图标容器大小
+                                  padding: const EdgeInsets.all(6), // Reduce icon container size
                                   decoration: BoxDecoration(
                                     color: Colors.blue[100],
                                     borderRadius: BorderRadius.circular(10),
@@ -616,20 +616,20 @@ class _MainFlamePageState extends State<MainFlamePage> {
                                   child: Icon(
                                     Icons.location_on,
                                     color: Colors.blue[700],
-                                    size: 20, // 减少图标大小
+                                    size: 20, // Reduce icon size
                                   ),
                                 ),
                                 const SizedBox(width: 10),
                                 Text(
-                                  '导航点信息',
-                                  style: theme.textTheme.titleMedium?.copyWith( // 使用较小的标题样式
+                                  'Navigation Point Info',
+                                  style: theme.textTheme.titleMedium?.copyWith( // Use smaller title style
                                     fontWeight: FontWeight.bold,
                                     color: Colors.grey[800],
                                   ),
                                 ),
                               ],
                             ),
-                            // 添加关闭按钮
+                            // Add close button
                             Container(
                               decoration: BoxDecoration(
                                 color: Colors.grey[100],
@@ -643,7 +643,7 @@ class _MainFlamePageState extends State<MainFlamePage> {
                                     selectedNavPoint = null;
                                   });
                                 },
-                                tooltip: '关闭',
+                                tooltip: 'Close',
                                 style: IconButton.styleFrom(
                                   padding: const EdgeInsets.all(6),
                                 ),
@@ -651,11 +651,11 @@ class _MainFlamePageState extends State<MainFlamePage> {
                             ),
                           ],
                         ),
-                        Divider(height: 20, thickness: 1, color: Colors.grey[300]), // 减少分隔线高度
+                        Divider(height: 20, thickness: 1, color: Colors.grey[300]), // Reduce divider height
                         
-                        // 导航点名称和类型
+                        // Navigation point name and type
                         Container(
-                          padding: const EdgeInsets.all(12), // 减少内边距
+                          padding: const EdgeInsets.all(12), // Reduce padding
                           decoration: BoxDecoration(
                             color: Colors.blue[50],
                             borderRadius: BorderRadius.circular(10),
@@ -679,7 +679,7 @@ class _MainFlamePageState extends State<MainFlamePage> {
                                 child: Icon(
                                   Icons.label,
                                   color: Colors.blue[700],
-                                  size: 16, // 减少图标大小
+                                  size: 16, // Reduce icon size
                                 ),
                               ),
                               const SizedBox(width: 10),
@@ -689,7 +689,7 @@ class _MainFlamePageState extends State<MainFlamePage> {
                                   children: [
                                     Text(
                                       selectedNavPoint!.name,
-                                      style: theme.textTheme.bodyLarge?.copyWith( // 使用较小的文本样式
+                                      style: theme.textTheme.bodyLarge?.copyWith( // Use smaller text style
                                         fontWeight: FontWeight.bold,
                                         color: Colors.blue[800],
                                       ),
@@ -723,24 +723,24 @@ class _MainFlamePageState extends State<MainFlamePage> {
                           ),
                         ),
                         
-                        const SizedBox(height: 16), // 减少间距
+                        const SizedBox(height: 16), // Reduce spacing
                         
-                        // 坐标信息
+                        // Coordinate information
                         _buildInfoSection(
                           context,
                           theme,
-                          '位置坐标',
+                          'Position Coordinates',
                           Icons.gps_fixed,
                           [
-                            _buildInfoRow('X坐标', '${selectedNavPoint!.x.toStringAsFixed(2)} m'),
-                            _buildInfoRow('Y坐标', '${selectedNavPoint!.y.toStringAsFixed(2)} m'),
-                            _buildInfoRow('方向', '${(selectedNavPoint!.theta * 180 / 3.14159).toStringAsFixed(1)}°'),
+                            _buildInfoRow('X Coordinate', '${selectedNavPoint!.x.toStringAsFixed(2)} m'),
+                            _buildInfoRow('Y Coordinate', '${selectedNavPoint!.y.toStringAsFixed(2)} m'),
+                            _buildInfoRow('Orientation', '${(selectedNavPoint!.theta * 180 / 3.14159).toStringAsFixed(1)}°'),
                           ],
                         ),
                         
-                        const SizedBox(height: 16), // 减少间距
+                        const SizedBox(height: 16), // Reduce spacing
                         
-                        // 导航按钮
+                        // Navigation button
                         Container(
                           width: double.infinity,
                           decoration: BoxDecoration(
@@ -758,13 +758,13 @@ class _MainFlamePageState extends State<MainFlamePage> {
                               if(Provider.of<GlobalState>(context, listen: false).isManualCtrl.value){
                                 toastification.show(
                                   context: context,
-                                  title: Text('请先停止手动控制'),
+                                  title: Text('Please stop manual control first'),
                                   autoCloseDuration: const Duration(seconds: 3),
                                 );
                                 return;
                               }
                               
-                              // 使用RosChannel发送导航目标
+                              // Use RosChannel to send navigation goal
                               Provider.of<RosChannel>(context, listen: false).sendNavigationGoal(
                                 RobotPose(
                                   selectedNavPoint!.x, 
@@ -773,14 +773,14 @@ class _MainFlamePageState extends State<MainFlamePage> {
                                 )
                               );
                               
-                              // 使用fluttertoast显示成功消息
+                              // Use fluttertoast to show success message
                               toastification.show(
                                 context: context,
-                                title: Text('已发送导航目标到 ${selectedNavPoint!.name}'),
+                                title: Text('Navigation goal sent to ${selectedNavPoint!.name}'),
                                 autoCloseDuration: const Duration(seconds: 3),
                               );
                               
-                              // 发送导航目标后自动关闭信息面板
+                              // Automatically close info panel after sending navigation goal
                               game.hideInfoPanel();
                               setState(() {
                                 selectedNavPoint = null;
@@ -788,13 +788,13 @@ class _MainFlamePageState extends State<MainFlamePage> {
                             },
                             icon: const Icon(Icons.navigation, size: 20),
                             label: const Text(
-                              '发送导航目标',
-                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600), // 减少按钮文字大小
+                              'Send Navigation Goal',
+                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600), // Reduce button text size
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.blue[600],
                               foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 14), // 减少按钮高度
+                              padding: const EdgeInsets.symmetric(vertical: 14), // Reduce button height
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
@@ -809,10 +809,10 @@ class _MainFlamePageState extends State<MainFlamePage> {
               ),
             ),
           
-          // 原有的工具栏按钮
+          // Original toolbar buttons
           Column(
             children: [
-              // 地图编辑按钮
+              // Map edit button
               Card(
                 elevation: 10,
                 child: IconButton(
@@ -831,7 +831,7 @@ class _MainFlamePageState extends State<MainFlamePage> {
                         MaterialPageRoute(
                           builder: (context) => MapEditPage(
                             onExit: () {
-                              // 地图编辑界面退出时，重新加载数据
+                              // Reload data when exiting map edit interface
                               _reloadData();
                             },
                           ),
@@ -839,13 +839,13 @@ class _MainFlamePageState extends State<MainFlamePage> {
                       );
                     setState(() {});
                   },
-                  tooltip: '地图编辑',
+                  tooltip: 'Map Editor',
                 ),
               ),
               
               const SizedBox(height: 8),
               
-              // 放大按钮
+              // Zoom in button
               Card(
                 elevation: 10,
                 child: IconButton(
@@ -856,10 +856,10 @@ class _MainFlamePageState extends State<MainFlamePage> {
                     Icons.zoom_in,
                     color: theme.iconTheme.color,
                   ),
-                  tooltip: '放大',
+                  tooltip: 'Zoom In',
                 ),
               ),
-              // 缩小按钮
+              // Zoom out button
               Card(
                 elevation: 10,
                 child: IconButton(
@@ -870,10 +870,10 @@ class _MainFlamePageState extends State<MainFlamePage> {
                     Icons.zoom_out,
                     color: theme.iconTheme.color,
                   ),
-                  tooltip: '缩小',
+                  tooltip: 'Zoom Out',
                 ),
               ),
-              // 定位到机器人按钮
+              // Center on robot button
               Card(
                 elevation: 10,
                 child: IconButton(
@@ -899,7 +899,7 @@ class _MainFlamePageState extends State<MainFlamePage> {
                   ),
                 ),
               ),
-              // // 退出按钮
+              // // Exit button
               // Card(
               //   elevation: 10,
               //   child: IconButton(
@@ -910,10 +910,10 @@ class _MainFlamePageState extends State<MainFlamePage> {
               //       Icons.exit_to_app,
               //       color: theme.iconTheme.color,
               //     ),
-              //     tooltip: '退出',
+              //     tooltip: 'Exit',
               //   ),
               // ),
-                             // 移除这里的GamepadWidget，我们将把它移到屏幕底部
+                             // Remove GamepadWidget from here, we'll move it to the bottom of the screen
             ],
           ),
         ],
@@ -931,7 +931,7 @@ class _MainFlamePageState extends State<MainFlamePage> {
             visible: !globalState.isManualCtrl.value,
             child: Row(
               children: [
-                // 急停按钮
+                // Emergency stop button
                 Card(
                   color: Colors.red,
                   child: Container(
@@ -947,14 +947,14 @@ class _MainFlamePageState extends State<MainFlamePage> {
                             .sendEmergencyStop();
                         toastification.show(
                           context: context,
-                          title: Text('急停已触发'),
+                          title: Text('Emergency stop triggered'),
                           autoCloseDuration: const Duration(seconds: 3),
                         );
                       },
                     ),
                   ),
                 ),
-                // 停止导航按钮
+                // Stop navigation button
                 Consumer<RosChannel>(
                   builder: (context, rosChannel, child) {
                     return ValueListenableBuilder<ActionStatus>(
@@ -980,7 +980,7 @@ class _MainFlamePageState extends State<MainFlamePage> {
                                       .sendCancelNav();
                                   toastification.show(
                                     context: context,
-                                    title: Text('导航已停止'),
+                                    title: Text('Navigation stopped'),
                                     autoCloseDuration: const Duration(seconds: 3),
                                   );
                                 },
@@ -1070,13 +1070,13 @@ class _MainFlamePageState extends State<MainFlamePage> {
   String _getTypeText(NavPointType type) {
     switch (type) {
       case NavPointType.navGoal:
-        return '导航目标';
+        return 'Navigation Goal';
       case NavPointType.chargeStation:
-        return '充电站';
+        return 'Charging Station';
     }
   }
   
-  // 构建相机显示组件
+  // Build camera display component
   Widget _buildCameraWidget(BuildContext context, ThemeData theme) {
     if (!showCamera) return const SizedBox.shrink();
     
@@ -1091,7 +1091,7 @@ class _MainFlamePageState extends State<MainFlamePage> {
             setState(() {
               double newX = camPosition.dx + details.delta.dx;
               double newY = camPosition.dy + details.delta.dy;
-              // 限制位置在屏幕范围内
+              // Limit position within screen bounds
               newX = newX.clamp(0.0, screenSize.width - camWidgetWidth);
               newY = newY.clamp(0.0, screenSize.height - camWidgetHeight);
               camPosition = Offset(newX, newY);
@@ -1103,7 +1103,7 @@ class _MainFlamePageState extends State<MainFlamePage> {
             children: [
               LayoutBuilder(
                 builder: (context, constraints) {
-                  // 在非全屏状态下，获取屏幕宽高
+                  // Get screen dimensions in non-fullscreen mode
                   double containerWidth = isCamFullscreen
                       ? screenSize.width
                       : camWidgetWidth;
@@ -1130,16 +1130,16 @@ class _MainFlamePageState extends State<MainFlamePage> {
                         : Icons.fullscreen,
                     color: Colors.black,
                   ),
-                  constraints: BoxConstraints(), // 移除按钮的默认大小约束，变得更加紧凑
+                  constraints: BoxConstraints(), // Remove button's default size constraints for more compact design
                   onPressed: () {
                     setState(() {
                       isCamFullscreen = !isCamFullscreen;
                       if (isCamFullscreen) {
-                        // 进入全屏时，保存当前位置，并将位置设为 (0, 0)
+                        // When entering fullscreen, save current position and set position to (0, 0)
                         camPreviousPosition = camPosition;
                         camPosition = Offset(0, 0);
                       } else {
-                        // 退出全屏时，恢复之前的位置
+                        // When exiting fullscreen, restore previous position
                         camPosition = camPreviousPosition;
                       }
                     });
@@ -1153,14 +1153,14 @@ class _MainFlamePageState extends State<MainFlamePage> {
     );
   }
   
-  // 构建游戏手柄组件
+  // Build gamepad component
   Widget _buildGamepadWidget(BuildContext context, ThemeData theme) {
     return Positioned(
       left: 0,
       right: 0,
       bottom: 0,
       child: Container(
-        height: 150, // 给GamepadWidget一个明确的高度
+        height: 150, // Give GamepadWidget a specific height
         child: GamepadWidget(),
       ),
     );

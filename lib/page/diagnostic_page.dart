@@ -14,9 +14,9 @@ class DiagnosticPage extends StatefulWidget {
 class _DiagnosticPageState extends State<DiagnosticPage> {
   late RosChannel rosChannel;
   String _searchQuery = '';
-  int _filterLevel = -1; // -1: 全部, 0: OK, 1: WARN, 2: ERROR, 3: STALE
-  Map<String, bool> _expandedHardware = {}; // 硬件ID展开状态
-  Map<String, Map<String, bool>> _expandedComponents = {}; // 组件展开状态
+  int _filterLevel = -1; // -1: All, 0: OK, 1: WARN, 2: ERROR, 3: STALE
+  Map<String, bool> _expandedHardware = {}; // Hardware ID expansion state
+  Map<String, Map<String, bool>> _expandedComponents = {}; // Component expansion state
   late TextEditingController _searchController;
 
   @override
@@ -36,7 +36,7 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('系统诊断'),
+        title: const Text('System Diagnostics'),
         // backgroundColor: Colors.blue,
         // foregroundColor: Colors.white,
         actions: [
@@ -46,7 +46,7 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
             onPressed: () {
               setState(() {});
             },
-            tooltip: '刷新',
+            tooltip: 'Refresh',
           ),
         ],
       ),
@@ -75,8 +75,8 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
                             const SizedBox(height: 16),
                             Text(
                               _searchQuery.isNotEmpty || _filterLevel != -1
-                                  ? '没有找到匹配的诊断数据'
-                                  : '暂无诊断数据',
+                                  ? 'No matching diagnostic data found'
+                                  : 'No diagnostic data available',
                               style: TextStyle(
                                 color: Colors.grey[600],
                                 fontSize: 16,
@@ -92,7 +92,7 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
                                     _searchController.clear();
                                   });
                                 },
-                                child: const Text('清除筛选条件'),
+                                child: const Text('Clear Filter'),
                               ),
                             ],
                           ],
@@ -102,7 +102,7 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
                 
                 return Column(
                   children: [
-                        // 筛选结果统计
+                        // Filter result statistics
                         if (_searchQuery.isNotEmpty || _filterLevel != -1)
                           Container(
                             width: double.infinity,
@@ -112,7 +112,7 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
                                 Icon(Icons.filter_list, color: Colors.blue[600], size: 16),
                                 const SizedBox(width: 8),
                                 Text(
-                                  '显示 ${filteredData.length} 个硬件组',
+                                  'Showing ${filteredData.length} hardware groups',
                                   style: TextStyle(
                                     color: Colors.blue[800],
                                     fontWeight: FontWeight.w500,
@@ -127,12 +127,12 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
                                       _searchController.clear();
                                     });
                                   },
-                                  child: const Text('清除筛选'),
+                                  child: const Text('Clear Filter'),
                                 ),
                               ],
                             ),
                           ),
-                        // 诊断数据列表
+                        // Diagnostic data list
                     Expanded(
                           child: ListView.builder(
                             itemCount: filteredData.length,
@@ -159,13 +159,13 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
-          // 搜索框
+          // Search box
           Expanded(
             flex: 2,
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: '搜索组件名称...',
+                hintText: 'Search component name...',
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
@@ -194,27 +194,27 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
             ),
           ),
           const SizedBox(width: 12),
-          // 状态筛选
+          // Status filter
           Expanded(
             flex: 3,
             child: Row(
               children: [
-                const Text('状态筛选: '),
+                const Text('Filter by Status: '),
                 const SizedBox(width: 8),
                 Expanded(
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        _buildFilterChip('全部', -1),
+                        _buildFilterChip('All', -1),
                         const SizedBox(width: 8),
-                        _buildFilterChip('正常', 0),
+                        _buildFilterChip('OK', 0),
                         const SizedBox(width: 8),
-                        _buildFilterChip('警告', 1),
+                        _buildFilterChip('Warning', 1),
                         const SizedBox(width: 8),
-                        _buildFilterChip('错误', 2),
+                        _buildFilterChip('Error', 2),
                         const SizedBox(width: 8),
-                        _buildFilterChip('过期', 3),
+                        _buildFilterChip('Stale', 3),
                       ],
                     ),
                   ),
@@ -229,7 +229,7 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
                         _searchController.clear();
                       });
                     },
-                    tooltip: '清除所有筛选',
+                    tooltip: 'Clear all filters',
                   ),
               ],
             ),
@@ -277,28 +277,28 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
     );
   }
 
-  // 获取筛选后的数据
+  // Get filtered data
   List<MapEntry<String, Map<String, DiagnosticState>>> _getFilteredData(DiagnosticManager diagnosticManager) {
     List<MapEntry<String, Map<String, DiagnosticState>>> allData = [];
     
-    // 获取所有硬件数据
+    // Get all hardware data
     for (var hardwareId in diagnosticManager.hardwareIds) {
       final states = diagnosticManager.getStatesForHardware(hardwareId);
       allData.add(MapEntry(hardwareId, states));
     }
     
-    // 应用搜索筛选
+    // Apply search filter
       if (_searchQuery.isNotEmpty) {
       allData = allData.where((entry) {
         final hardwareId = entry.key.toLowerCase();
         final states = entry.value;
         
-        // 检查硬件ID是否匹配
+        // Check if hardware ID matches
         if (hardwareId.contains(_searchQuery)) {
           return true;
         }
         
-        // 检查组件是否匹配
+        // Check if components match
         for (var componentEntry in states.entries) {
           final componentName = componentEntry.key.toLowerCase();
           final state = componentEntry.value;
@@ -314,12 +314,12 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
       }).toList();
     }
     
-    // 应用状态筛选
+    // Apply status filtering
     if (_filterLevel != -1) {
       allData = allData.where((entry) {
         final states = entry.value;
         
-        // 检查是否有匹配状态的组件
+        // Check if there are components with matching status
         return states.values.any((state) => state.level == _filterLevel);
       }).toList();
     }
@@ -327,11 +327,11 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
     return allData;
   }
 
-  // 构建硬件组
+  // Build hardware group
   Widget _buildHardwareGroup(String hardwareId, Map<String, DiagnosticState> states) {
     final isExpanded = _expandedHardware[hardwareId] ?? false;
     
-    // 如果有筛选条件，只显示匹配的组件
+    // If there are filter conditions, only show matching components
     Map<String, DiagnosticState> filteredStates = states;
     if (_searchQuery.isNotEmpty || _filterLevel != -1) {
       filteredStates = Map.fromEntries(
@@ -339,7 +339,7 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
           final componentName = entry.key;
           final state = entry.value;
           
-      // 搜索筛选
+      // Search filtering
       if (_searchQuery.isNotEmpty) {
             final hardwareIdLower = hardwareId.toLowerCase();
             final componentNameLower = componentName.toLowerCase();
@@ -352,7 +352,7 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
         }
       }
 
-      // 状态筛选
+      // Status filtering
           if (_filterLevel != -1 && state.level != _filterLevel) {
         return false;
       }
@@ -362,12 +362,12 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
       );
     }
     
-    // 如果没有匹配的组件，不显示该硬件组
+    // If no matching components, don't show this hardware group
     if (filteredStates.isEmpty) {
       return const SizedBox.shrink();
     }
     
-    // 计算该硬件组的最高状态级别
+    // Calculate the highest status level for this hardware group
     int maxLevel = DiagnosticStatus.OK;
     for (var state in filteredStates.values) {
       if (state.level > maxLevel) {
@@ -383,22 +383,22 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
       case DiagnosticStatus.ERROR:
         groupColor = Colors.red;
         groupIcon = Icons.error;
-        groupStatusText = '错误';
+        groupStatusText = 'Error';
         break;
       case DiagnosticStatus.WARN:
         groupColor = Colors.orange;
         groupIcon = Icons.warning;
-        groupStatusText = '警告';
+        groupStatusText = 'Warning';
         break;
       case DiagnosticStatus.STALE:
         groupColor = Colors.grey;
         groupIcon = Icons.schedule;
-        groupStatusText = '过期';
+        groupStatusText = 'Stale';
         break;
       default:
         groupColor = Colors.green;
         groupIcon = Icons.check_circle;
-        groupStatusText = '正常';
+        groupStatusText = 'OK';
     }
 
     return Card(
@@ -416,7 +416,7 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '状态: $groupStatusText | 组件数: ${filteredStates.length}',
+              'Status: $groupStatusText | Components: ${filteredStates.length}',
               style: TextStyle(
                 color: groupColor,
                 fontWeight: FontWeight.w500,
@@ -424,7 +424,7 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
             ),
             const SizedBox(height: 2),
             Text(
-              '最后更新: ${_formatDateTime(_getLatestUpdateTime(filteredStates))}',
+              'Last Updated: ${_formatDateTime(_getLatestUpdateTime(filteredStates))}',
               style: const TextStyle(
                 fontSize: 11,
                 color: Colors.grey,
@@ -444,7 +444,7 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
     );
   }
 
-  // 构建组件项
+  // Build component item
   Widget _buildComponentItem(String hardwareId, String componentName, DiagnosticState state) {
     final isExpanded = _expandedComponents[hardwareId]?[componentName] ?? false;
     
@@ -465,7 +465,7 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '状态: ${state.levelDisplayName}',
+                'Status: ${state.levelDisplayName}',
                 style: TextStyle(
                   color: state.levelColor,
                   fontWeight: FontWeight.w500,
@@ -484,7 +484,7 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
                 ),
               const SizedBox(height: 4),
               Text(
-                '更新时间: ${_formatDateTime(state.lastUpdateTime)}',
+                'Updated: ${_formatDateTime(state.lastUpdateTime)}',
                 style: const TextStyle(
                   fontSize: 10,
                   color: Colors.grey,
@@ -511,7 +511,7 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
                 child: Column(
                   children: [
                     const Text(
-                      '暂无详细信息',
+                      'No detailed information available',
                       style: TextStyle(
                         color: Colors.grey,
                         fontStyle: FontStyle.italic,
@@ -519,7 +519,7 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '最后更新: ${_formatDateTime(state.lastUpdateTime)}',
+                      'Last Updated: ${_formatDateTime(state.lastUpdateTime)}',
                       style: const TextStyle(
                         fontSize: 10,
                         color: Colors.grey,
@@ -535,7 +535,7 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
     );
   }
 
-  // 构建键值对表格
+  // Build key-value table
   Widget _buildKeyValueTable(Map<String, String> keyValues, DateTime lastUpdateTime) {
     return Container(
       margin: const EdgeInsets.all(16),
@@ -559,7 +559,7 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
                 const Expanded(
                   flex: 2,
                   child: Text(
-                    '键',
+                    'Key',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
@@ -569,7 +569,7 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
                 const Expanded(
                   flex: 3,
                   child: Text(
-                    '值',
+                    'Value',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
@@ -579,7 +579,7 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
                 Expanded(
                   flex: 2,
                   child: Text(
-                    '更新时间: ${_formatDateTime(lastUpdateTime)}',
+                    'Updated: ${_formatDateTime(lastUpdateTime)}',
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 10,
@@ -620,7 +620,7 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
                 ),
                 const Expanded(
                   flex: 2,
-                  child: SizedBox(), // 占位符，保持对齐
+                  child: SizedBox(), // Placeholder for alignment
                 ),
               ],
             ),
@@ -630,7 +630,7 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
     );
   }
 
-  // 构建摘要栏
+  // Build summary bar
   Widget _buildSummaryBar() {
     return Consumer<RosChannel>(
       builder: (context, rosChannel, child) {
@@ -654,13 +654,13 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildSummaryChip('正常', okCount, Colors.green),
+                  _buildSummaryChip('OK', okCount, Colors.green),
                   const SizedBox(width: 4),
-                  _buildSummaryChip('警告', warnCount, Colors.orange),
+                  _buildSummaryChip('Warning', warnCount, Colors.orange),
                   const SizedBox(width: 4),
-                  _buildSummaryChip('错误', errorCount, Colors.red),
+                  _buildSummaryChip('Error', errorCount, Colors.red),
                   const SizedBox(width: 4),
-                  _buildSummaryChip('过期', staleCount, Colors.grey),
+                  _buildSummaryChip('Stale', staleCount, Colors.grey),
                 ],
               ),
             );
@@ -703,7 +703,7 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
     );
   }
 
-  // 获取硬件组中所有组件的最新更新时间
+  // Get the latest update time of all components in the hardware group
   DateTime _getLatestUpdateTime(Map<String, DiagnosticState> states) {
     if (states.isEmpty) return DateTime.now();
     
@@ -716,7 +716,7 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
     return latestTime;
   }
 
-  // 格式化时间显示
+  // Format time display
   String _formatDateTime(DateTime dateTime) {
     final milliseconds = dateTime.millisecond.toString().padLeft(3, '0');
     return '${dateTime.year}-${dateTime.month}-${dateTime.day} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}:${dateTime.second.toString().padLeft(2, '0')}.$milliseconds';

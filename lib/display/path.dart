@@ -37,7 +37,7 @@ class PathComponent extends Component with HasGameRef {
     animationTimer.update(dt);
     animationValue = (animationTimer.progress * 2.0) % 1.0;
     
-    // 更新渲染器的动画值
+    // Update renderer's animation value
     final renderer = children.whereType<PathRenderer>().firstOrNull;
     if (renderer != null) {
       renderer.updateAnimationValue(animationValue);
@@ -48,7 +48,7 @@ class PathComponent extends Component with HasGameRef {
 
   void updatePath(List<vm.Vector2> newPoints) {
     pointList = newPoints;
-    // 更新渲染器的点列表
+    // Update renderer's point list
     final renderer = children.whereType<PathRenderer>().firstOrNull;
     if (renderer != null) {
       renderer.updatePath(newPoints);
@@ -82,7 +82,7 @@ class PathRenderer extends Component with HasGameRef {
 
   @override
   void render(Canvas canvas) {
-    // 添加安全检查
+    // Add safety check
     if (!isMounted) {
       return;
     }
@@ -90,10 +90,10 @@ class PathRenderer extends Component with HasGameRef {
     try {
       if (pointList.isEmpty || pointList.length < 2) return;
 
-      // 绘制主路径线
+      // Draw main path line
       _drawMainPath(canvas);
       
-      // 在路径上添加流动箭头纹理
+      // Add flowing arrow texture on the path
       _drawFlowingArrows(canvas);
     } catch (e) {
       print('Error rendering path: $e');
@@ -108,15 +108,15 @@ class PathRenderer extends Component with HasGameRef {
       ..strokeWidth = 1.0
       ..style = PaintingStyle.stroke;
 
-    // 移动到第一个点
+    // Move to first point
     path.moveTo(pointList[0].x, pointList[0].y);
     
-    // 连接所有点形成路径
+    // Connect all points to form path
     for (int i = 1; i < pointList.length; i++) {
       path.lineTo(pointList[i].x, pointList[i].y);
     }
 
-    // 绘制主路径线
+    // Draw main path line
     canvas.drawPath(path, paint);
   }
 
@@ -128,15 +128,15 @@ class PathRenderer extends Component with HasGameRef {
       ..strokeWidth = 1.0
       ..style = PaintingStyle.fill;
 
-    // 在路径上绘制流动的箭头
+    // Draw flowing arrows on the path
     for (int i = 0; i < pointList.length - 1; i++) {
       vm.Vector2 currentPoint = pointList[i];
       vm.Vector2 nextPoint = pointList[i + 1];
       
-      // 计算当前段的方向
+      // Calculate direction of current segment
       vm.Vector2 direction = (nextPoint - currentPoint).normalized();
       
-      // 绘制流动箭头
+      // Draw flowing arrows
       _drawFlowingArrowSegment(canvas, currentPoint, nextPoint, direction, paint);
     }
   }
@@ -145,30 +145,30 @@ class PathRenderer extends Component with HasGameRef {
     final distance = (end - start).length;
     if (distance == 0) return;
     
-    // 箭头参数
+    // Arrow parameters
     final arrowSpacing = 12.0;
     final triangleSize = 2.0;
     
-    // 动画偏移
+    // Animation offset
     double animationOffset = animationValue * arrowSpacing % arrowSpacing;
     
-    // 绘制流动三角形
+    // Draw flowing triangles
     double currentDistance = animationOffset;
     
     while (currentDistance < distance) {
       if (currentDistance > triangleSize && currentDistance < distance - triangleSize) {
         final triangleCenter = start + direction * currentDistance;
         
-        // 计算三角形透明度
+        // Calculate triangle opacity
         final distanceRatio = currentDistance / distance;
         final opacity = (0.8 - distanceRatio * 0.3).clamp(0.0, 1.0);
         
-        // 绘制实心三角形
+        // Draw solid triangle
         final perpendicular = vm.Vector2(-direction.y, direction.x);
         final trianglePoints = [
-          triangleCenter + direction * triangleSize, // 前端点
-          triangleCenter - direction * triangleSize * 0.5 + perpendicular * triangleSize * 0.5, // 左后点
-          triangleCenter - direction * triangleSize * 0.5 - perpendicular * triangleSize * 0.5, // 右后点
+          triangleCenter + direction * triangleSize, // Front point
+          triangleCenter - direction * triangleSize * 0.5 + perpendicular * triangleSize * 0.5, // Left back point
+          triangleCenter - direction * triangleSize * 0.5 - perpendicular * triangleSize * 0.5, // Right back point
         ];
         
         final path = Path();

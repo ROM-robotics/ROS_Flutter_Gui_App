@@ -16,10 +16,10 @@ class MapComponent extends PositionComponent {
   RosChannel? _rosChannel;
   bool _isDarkMode = false;
   
-  // 公开访问当前地图数据
+  // Public access to current map data
   OccupancyMap? get currentMap => _currentMap;
   
-  // 构造函数接收RosChannel
+  // Constructor receives RosChannel
   MapComponent({RosChannel? rosChannel}) {
     _rosChannel = rosChannel;
   }
@@ -28,7 +28,7 @@ class MapComponent extends PositionComponent {
   Future<void> onLoad() async {
     super.onLoad();
     
-    // 如果有RosChannel，立即设置监听器
+    // If RosChannel exists, set up listener immediately
     if (_rosChannel != null) {
       _setupMapListener();
     }
@@ -36,10 +36,10 @@ class MapComponent extends PositionComponent {
   
   void _setupMapListener() {
     if (_rosChannel != null) {
-      // 监听地图数据变化
+      // Listen to map data changes
       _rosChannel!.map_.addListener(_onMapDataChanged);
       
-      // 立即更新当前地图数据
+      // Update current map data immediately
       _onMapDataChanged();
     }
   }
@@ -60,7 +60,7 @@ class MapComponent extends PositionComponent {
   
   void updateThemeMode(bool isDarkMode) {
     _isDarkMode = isDarkMode;
-    // 重新渲染地图以应用新的主题
+    // Re-render map to apply new theme
     if (_currentMap != null) {
       _processMapToImage(_currentMap!);
     }
@@ -80,56 +80,56 @@ class MapComponent extends PositionComponent {
       final int width = map.mapConfig.width;
       final int height = map.mapConfig.height;
 
-      // 创建像素数据缓冲区 (RGBA格式)
+      // Create pixel data buffer (RGBA format)
       final List<int> pixelData = List.filled(width * height * 4, 0);
       
-      // 处理地图数据
+      // Process map data
       for (int i = 0; i < map.Cols(); i++) {
         for (int j = 0; j < map.Rows(); j++) {
           int mapValue = map.data[j][i];
           final int pixelIndex = (j * width + i) * 4;
           
           if (mapValue > 0) {
-            // 占据区域
+            // Occupied area
             int alpha = (mapValue * 2.55).clamp(0, 255).toInt();
             if (_isDarkMode) {
-              // 暗色主题 - 浅灰色障碍物
+              // Dark theme - light gray obstacles
               pixelData[pixelIndex] = 200;     // R
               pixelData[pixelIndex + 1] = 200; // G
               pixelData[pixelIndex + 2] = 200; // B
               pixelData[pixelIndex + 3] = alpha; // A
             } else {
-              // 亮色主题 - 深灰色障碍物
+              // Light theme - dark gray obstacles
               pixelData[pixelIndex] = 60;      // R
               pixelData[pixelIndex + 1] = 60;  // G
               pixelData[pixelIndex + 2] = 60;  // B
               pixelData[pixelIndex + 3] = alpha; // A
             }
           } else if (mapValue == 0) {
-            // 自由区域
+            // Free area
             if (_isDarkMode) {
-              // 暗色主题 - 深色背景
+              // Dark theme - dark background
               pixelData[pixelIndex] = 30;      // R
               pixelData[pixelIndex + 1] = 30;  // G
               pixelData[pixelIndex + 2] = 30;  // B
               pixelData[pixelIndex + 3] = 255; // A
             } else {
-              // 亮色主题 - 白色背景
+              // Light theme - white background
               pixelData[pixelIndex] = 255;     // R
               pixelData[pixelIndex + 1] = 255; // G
               pixelData[pixelIndex + 2] = 255; // B
               pixelData[pixelIndex + 3] = 255; // A
             }
           } else {
-            // 未知区域
+            // Unknown area
             if (_isDarkMode) {
-              // 暗色主题 - 中等灰色
+              // Dark theme - medium gray
               pixelData[pixelIndex] = 80;      // R
               pixelData[pixelIndex + 1] = 80;  // G
               pixelData[pixelIndex + 2] = 80;  // B
               pixelData[pixelIndex + 3] = 128; // A
             } else {
-              // 亮色主题 - 浅灰色
+              // Light theme - light gray
               pixelData[pixelIndex] = 200;     // R
               pixelData[pixelIndex + 1] = 200; // G
               pixelData[pixelIndex + 2] = 200; // B
@@ -139,12 +139,12 @@ class MapComponent extends PositionComponent {
         }
       }
       
-      // 创建图像数据
+      // Create image data
       final ui.ImmutableBuffer buffer = await ui.ImmutableBuffer.fromUint8List(
         Uint8List.fromList(pixelData),
       );
       
-      // 创建图像描述符
+      // Create image descriptor
       final ui.ImageDescriptor descriptor = ui.ImageDescriptor.raw(
         buffer,
         width: width,
@@ -152,17 +152,17 @@ class MapComponent extends PositionComponent {
         pixelFormat: ui.PixelFormat.rgba8888,
       );
       
-      // 解码图像
+      // Decode image
       final ui.Codec codec = await descriptor.instantiateCodec();
       final ui.FrameInfo frameInfo = await codec.getNextFrame();
       final ui.Image image = frameInfo.image;
       
-      // 释放资源
+      // Release resources
       buffer.dispose();
       descriptor.dispose();
       codec.dispose();
       
-      // 更新图像
+      // Update image
       _mapImage?.dispose();
       _mapImage = image;
       
@@ -178,19 +178,19 @@ class MapComponent extends PositionComponent {
     super.render(canvas);
     
     if (_mapImage != null && _currentMap != null) {
-      // 绘制地图图像
+      // Draw map image
       canvas.drawImage(_mapImage!, Offset.zero, Paint());
     }
   }
   
   @override
   void onRemove() {
-    // 移除监听器
+    // Remove listener
     if (_rosChannel != null) {
       _rosChannel!.map_.removeListener(_onMapDataChanged);
     }
     
-    // 释放图像资源
+    // Release image resources
     _mapImage?.dispose();
     super.onRemove();
   }

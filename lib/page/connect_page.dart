@@ -27,7 +27,7 @@ class _ConnectPageState extends State<ConnectPage> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text('发生错误：${snapshot.error}'));
+            return Center(child: Text('Error occurred: ${snapshot.error}'));
           }
 
           _ipController.text = globalSetting.robotIp;
@@ -47,7 +47,7 @@ class _ConnectPageState extends State<ConnectPage> {
             child: SafeArea(
               child: Stack(
                 children: [
-                  // 居中小窗口
+                  // Centered small window
                   Center(
                     child: Container(
                       constraints: const BoxConstraints(
@@ -75,7 +75,7 @@ class _ConnectPageState extends State<ConnectPage> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // 顶部图标和标题
+                            // Top icon and title
                             Icon(
                               Icons.smart_toy_outlined,
                               size: 50,
@@ -92,7 +92,7 @@ class _ConnectPageState extends State<ConnectPage> {
                             ),
                             const SizedBox(height: 32),
 
-                            // IP地址和端口输入框
+                            // IP address and port input fields
                             Row(
                               children: [
                                 Expanded(
@@ -171,7 +171,7 @@ class _ConnectPageState extends State<ConnectPage> {
                             ),
                             const SizedBox(height: 24),
 
-                            // 连接按钮
+                            // Connect button
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
@@ -205,7 +205,7 @@ class _ConnectPageState extends State<ConnectPage> {
                             ),
                             const SizedBox(height: 24),
 
-                            // 主题切换
+                            // Theme toggle
                             Container(
                               decoration: BoxDecoration(
                                 color: Theme.of(context).colorScheme.surface.withOpacity(0.1),
@@ -277,7 +277,7 @@ class _ConnectPageState extends State<ConnectPage> {
                     ),
                   ),
 
-                  // 右上角设置按钮
+                  // Top-right settings button
                   Positioned(
                     top: 8,
                     right: 8,

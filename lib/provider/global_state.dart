@@ -4,16 +4,16 @@ import 'dart:convert';
 
 enum Mode {
   normal,
-  reloc, //重定位模式
-  addNavPoint, //添加导航点模式
-  robotFixedCenter, //机器人固定屏幕中心模式
-  mapEdit, //地图编辑模式
+  reloc, // Relocalization mode
+  addNavPoint, // Add navigation point mode
+  robotFixedCenter, // Robot fixed to screen center mode
+  mapEdit, // Map editing mode
 }
 
 class GlobalState extends ChangeNotifier {
   ValueNotifier<bool> isManualCtrl = ValueNotifier(false);
   ValueNotifier<Mode> mode = ValueNotifier(Mode.normal);
-  // 图层开关状态 - 使用Map存储
+  // Layer toggle states - stored using Map
   final Map<String, ValueNotifier<bool>> _layerStates = {
     'showGrid': ValueNotifier(true),
     'showGlobalCostmap': ValueNotifier(false),
@@ -29,15 +29,15 @@ class GlobalState extends ChangeNotifier {
   
 
 
-  // 图层状态管理
+  // Layer state management
   static const String _layerSettingsKey = 'layer_settings';
   
-  // 获取图层状态
+  // Get layer state
   ValueNotifier<bool> getLayerState(String layerName) {
     return _layerStates[layerName] ?? ValueNotifier(false);
   }
   
-  // 设置图层状态
+  // Set layer state
   void setLayerState(String layerName, bool value) {
     final state = _layerStates[layerName];
     if (state != null) {
@@ -46,7 +46,7 @@ class GlobalState extends ChangeNotifier {
     }
   }
   
-  // 切换图层状态
+  // Toggle layer state
   void toggleLayer(String layerName) {
     final state = _layerStates[layerName];
     if (state != null) {
@@ -55,7 +55,7 @@ class GlobalState extends ChangeNotifier {
     }
   }
 
-  // 保存所有图层状态到设置
+  // Save all layer states to settings
   Future<void> saveLayerSettings() async {
     final prefs = await SharedPreferences.getInstance();
     final layerSettings = <String, bool>{};
@@ -67,7 +67,7 @@ class GlobalState extends ChangeNotifier {
     await prefs.setString(_layerSettingsKey, jsonEncode(layerSettings));
   }
   
-  // 从设置加载图层状态
+  // Load layer states from settings
   Future<void> loadLayerSettings() async {
     final prefs = await SharedPreferences.getInstance();
     final layerSettingsStr = prefs.getString(_layerSettingsKey);
@@ -84,15 +84,15 @@ class GlobalState extends ChangeNotifier {
           }
         });
       } catch (e) {
-        print('加载图层设置失败: $e');
+        print('Failed to load layer settings: $e');
       }
     }
   }
   
-  // 获取所有图层名称
+  // Get all layer names
   List<String> get layerNames => _layerStates.keys.toList();
   
-  // 检查图层是否可见
+  // Check if layer is visible
   bool isLayerVisible(String layerName) {
     return _layerStates[layerName]?.value ?? false;
   }

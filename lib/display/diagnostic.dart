@@ -15,7 +15,7 @@ class DiagnosticDisplay extends StatelessWidget {
     if (diagnosticData.status.isEmpty) {
       return const Center(
         child: Text(
-          '暂无诊断数据',
+          'No diagnostic data available',
           style: TextStyle(
             color: Colors.grey,
             fontSize: 16,
@@ -74,7 +74,7 @@ class DiagnosticDisplay extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '状态: ${status.levelDisplayName}',
+              'Status: ${status.levelDisplayName}',
               style: TextStyle(
                 color: statusColor,
                 fontWeight: FontWeight.w500,
@@ -99,7 +99,7 @@ class DiagnosticDisplay extends StatelessWidget {
               child: Row(
                 children: [
                   const Text(
-                    '硬件ID: ',
+                    'Hardware ID: ',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   Expanded(
@@ -118,7 +118,7 @@ class DiagnosticDisplay extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    '详细信息:',
+                    'Details:',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
@@ -202,7 +202,7 @@ class DiagnosticSummary extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              '诊断状态总览',
+              'Diagnostic Status Overview',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -212,10 +212,10 @@ class DiagnosticSummary extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildStatusChip('正常', okCount, Colors.green),
-                _buildStatusChip('警告', warnCount, Colors.orange),
-                _buildStatusChip('错误', errorCount, Colors.red),
-                _buildStatusChip('过期', staleCount, Colors.grey),
+                _buildStatusChip('OK', okCount, Colors.green),
+                _buildStatusChip('Warning', warnCount, Colors.orange),
+                _buildStatusChip('Error', errorCount, Colors.red),
+                _buildStatusChip('Stale', staleCount, Colors.grey),
               ],
             ),
           ],

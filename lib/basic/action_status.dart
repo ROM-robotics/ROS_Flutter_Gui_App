@@ -19,7 +19,7 @@ enum ActionStatus {
 
   @override
   String toString() {
-    return name; // 直接返回枚举的名称，不包含前缀
+    return name; // Directly return enum name without prefix
   }
 }
 

@@ -32,13 +32,13 @@ class _MapEditPageState extends State<MapEditPage> {
   late GlobalState globalState;
   late RosChannel rosChannel;
 
-  // 当前选中的编辑工具
+  // Currently selected edit tool
   EditToolType? selectedTool;
   
-  // 导航点列表
+  // Navigation point list
   List<NavPoint> navPoints = [];
   
-  // 当前选中的点位信息
+  // Currently selected waypoint information
   NavPoint? selectedWayPointInfo;
 
 
@@ -50,10 +50,10 @@ class _MapEditPageState extends State<MapEditPage> {
     rosChannel = Provider.of<RosChannel>(context, listen: false);
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     
-    // 设置地图编辑模式
+    // Set map editing mode
     globalState.mode.value = Mode.mapEdit;
  
-    // 创建专门的地图编辑Flame组件，传入回调函数
+    // Create dedicated map editing Flame component, pass in callback functions
     game = MapEditFlame(
       rosChannel: rosChannel,
       themeProvider: themeProvider,
@@ -63,7 +63,7 @@ class _MapEditPageState extends State<MapEditPage> {
       },
       onWayPointSelectionChanged: _onWayPointSelectionChanged,
     );
-    // 拖拽/旋转实时回调，刷新右侧信息
+    // Real-time callback for drag/rotation, refresh right panel information
     game.currentSelectPointUpdate = () {
       setState(() {
         final info = game.getSelectedWayPointInfo();
@@ -71,18 +71,18 @@ class _MapEditPageState extends State<MapEditPage> {
       });
     };
     
-    // 加载导航点
+    // Load navigation points
     _loadNavPoints();
   }
   
   @override
   void dispose() {
-    // 退出地图编辑模式时，重置为正常模式
+    // Reset to normal mode when exiting map editing mode
     globalState.mode.value = Mode.normal;
     super.dispose();
   }
 
-  // 导航点选择状态变化回调
+  // Navigation point selection state change callback
   void _onWayPointSelectionChanged() {
     setState(() {
       final info = game.getSelectedWayPointInfo();
@@ -90,7 +90,7 @@ class _MapEditPageState extends State<MapEditPage> {
     });
   }
   
-  // 加载导航点
+  // Load navigation points
   Future<void> _loadNavPoints() async {
     final navPointManager = Provider.of<NavPointManager>(context, listen: false);
     navPoints = await navPointManager.loadNavPoints();
@@ -101,21 +101,21 @@ class _MapEditPageState extends State<MapEditPage> {
     });
   }
   
-  // 添加导航点
+  // Add navigation point
   Future<NavPoint?> _addNavPoint(double x, double y) async {
     final name = await _showAddNavPointDialog(x, y);
     if (name != null && name.isNotEmpty) {
-      // 用户输入了名称并点击确定，创建导航点
+      // User entered name and clicked OK, create navigation point
       final navPointManager = Provider.of<NavPointManager>(context, listen: false);
       final navPoint = await navPointManager.addNavPoint(x, y, 0.0, name);
       return navPoint;
     } else {
-      // 用户点击取消或没有输入名称
+      // User clicked cancel or didn't enter a name
       return null;
     }
   }
   
-  // 显示添加导航点对话框
+  // Show add navigation point dialog
   Future<String?> _showAddNavPointDialog(double x, double y) async {
     final TextEditingController nameController = TextEditingController();
     final navPointManager = Provider.of<NavPointManager>(context, listen: false);
@@ -126,16 +126,16 @@ class _MapEditPageState extends State<MapEditPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('添加导航点'),
+          title: const Text('Add Navigation Point'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('位置: (${x.toStringAsFixed(2)}, ${y.toStringAsFixed(2)})'),
+              Text('Position: (${x.toStringAsFixed(2)}, ${y.toStringAsFixed(2)})'),
               const SizedBox(height: 16),
               TextField(
                 controller: nameController,
                 decoration: const InputDecoration(
-                  labelText: '导航点名称',
+                  labelText: 'Navigation Point Name',
                   border: OutlineInputBorder(),
                 ),
                 autofocus: true,
@@ -145,11 +145,11 @@ class _MapEditPageState extends State<MapEditPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('取消'),
+              child: const Text('Cancel'),
             ),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(nameController.text),
-              child: const Text('确定'),
+              child: const Text('OK'),
             ),
           ],
         );
@@ -164,7 +164,7 @@ class _MapEditPageState extends State<MapEditPage> {
     return Scaffold(
       body: Stack(
         children: [
-          // 游戏画布
+          // Game canvas
           Listener(
             onPointerSignal: (pointerSignal) {
               if (pointerSignal is PointerScrollEvent) {
@@ -174,7 +174,7 @@ class _MapEditPageState extends State<MapEditPage> {
             },
             child: GestureDetector(
               onTapDown: (details) async {
-                // 使用局部坐标，避免受栈内其他控件偏移影响
+                // Use local coordinates to avoid offset influence from other controls in the stack
                 final position = Vector2(details.localPosition.dx, details.localPosition.dy);
                 await game.onTapDown(position);
               },
@@ -196,7 +196,7 @@ class _MapEditPageState extends State<MapEditPage> {
             ),
           ),
           
-          // 顶部工具栏
+          // Top toolbar
           Positioned(
             top: 0,
             left: 0,
@@ -204,21 +204,21 @@ class _MapEditPageState extends State<MapEditPage> {
             child: _buildTopToolbar(context, theme),
           ),
           
-          // 左侧编辑工具栏
+          // Left edit toolbar
           Positioned(
             left: 10,
             top: 100,
             child: _buildEditToolbar(context, theme),
           ),
           
-          // 右侧信息面板
+          // Right information panel
           Positioned(
             right: 10,
             top: 100,
             child: _buildInfoPanel(context, theme),
           ),
           
-          // 右下角按钮
+          // Bottom right button
           Positioned(
             right: 20,
             bottom: 20,
@@ -244,23 +244,23 @@ class _MapEditPageState extends State<MapEditPage> {
       ),
       child: Row(
         children: [
-          // 左侧工具栏按钮
+          // Left toolbar buttons
           Expanded(
             child: Row(
               children: [
-                // 打开文件按钮
+                // Open file button
                 IconButton(
                   icon: const Icon(Icons.folder_open, color: Colors.white, size: 28),
                   onPressed: () {
-                    // TODO: 实现打开文件功能
-                    print('打开文件');
+                    // TODO: Implement open file functionality
+                    print('Open File');
                   },
-                  tooltip: '打开文件',
+                  tooltip: 'Open File',
                 ),
                 
                 const SizedBox(width: 16),
                 
-                // 保存按钮
+                // Save button
                 IconButton(
                   icon: const Icon(Icons.save, color: Colors.white, size: 28),
                   onPressed: () async {
@@ -274,52 +274,52 @@ class _MapEditPageState extends State<MapEditPage> {
                     );
                     await rosChannel.updateTopologyMap(topologyMap);
 
-                    // 显示保存成功提示
+                    // Show save success message
                     if (mounted) {
                       toastification.show(
                         context: context,
                         type: ToastificationType.success,
                         style: ToastificationStyle.flatColored,
-                        title:const Text('保存成功！'),
+                        title:const Text('Saved Successfully!'),
                         autoCloseDuration: const Duration(seconds: 2),
                       );
                     }
                   },
-                  tooltip: '保存',
+                  tooltip: 'Save',
                 ),
                 
                 const SizedBox(width: 16),
                 
-                // 撤销按钮
+                // Undo button
                 IconButton(
                   icon: const Icon(Icons.undo, color: Colors.white, size: 28),
                   onPressed: () {
-                    // TODO: 实现撤销功能
-                    print('撤销');
+                    // TODO: Implement undo functionality
+                    print('Undo');
                   },
-                  tooltip: '撤销',
+                  tooltip: 'Undo',
                 ),
                 
                 const SizedBox(width: 16),
                 
-                // 重做按钮
+                // Redo button
                 IconButton(
                   icon: const Icon(Icons.redo, color: Colors.white, size: 28),
                   onPressed: () {
-                    // TODO: 实现重做功能
-                    print('重做');
+                    // TODO: Implement redo functionality
+                    print('Redo');
                   },
-                  tooltip: '重做',
+                  tooltip: 'Redo',
                 ),
               ],
             ),
           ),
           
-          // 中间标题
+          // Center title
           Expanded(
             child: Center(
               child: Text(
-                '地图编辑',
+                'Map Editor',
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 20,
@@ -329,7 +329,7 @@ class _MapEditPageState extends State<MapEditPage> {
             ),
           ),
           
-          // 右侧退出按钮
+          // Right exit button
           Expanded(
             child: Align(
               alignment: Alignment.centerRight,
@@ -338,18 +338,18 @@ class _MapEditPageState extends State<MapEditPage> {
                 child: IconButton(
                   icon: const Icon(Icons.close, color: Colors.white, size: 28),
                   onPressed: () async {
-                    // 退出前保存当前状态
+                    // Save current state before exiting
                     List<NavPoint> navPoints = game.getAllWayPoint();
                     final navPointManager = Provider.of<NavPointManager>(context, listen: false);
                     await navPointManager.saveNavPoints(navPoints);
                     
-                    // 调用退出回调
+                    // Call exit callback
                     widget.onExit?.call();
                     
-                    // 退出地图编辑模式
+                    // Exit map editing mode
                     Navigator.pop(context);
                   },
-                  tooltip: '退出地图编辑模式',
+                  tooltip: 'Exit Map Editing Mode',
                 ),
               ),
             ),
@@ -367,30 +367,30 @@ class _MapEditPageState extends State<MapEditPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 导航点添加工具
+            // Navigation point addition tool
             _buildEditTool(
               icon: Icons.add_location,
-              label: '导航点编辑',
+              label: 'Nav Point Edit',
               toolName: EditToolType.addNavPoint,
               color: Colors.blue,
             ),
             
             const SizedBox(height: 8),
             
-            // 障碍物绘制工具
+            // Obstacle drawing tool
             _buildEditTool(
               icon: Icons.brush,
-              label: '绘制障碍物',
+              label: 'Draw Obstacle',
               toolName: EditToolType.drawObstacle,
               color: Colors.red,
             ),
             
             const SizedBox(height: 8),
             
-            // 障碍物擦除工具
+            // Obstacle erasing tool
             _buildEditTool(
               icon: Icons.auto_fix_high,
-              label: '擦除障碍物',
+              label: 'Erase Obstacle',
               toolName: EditToolType.eraseObstacle,
               color: Colors.green,
             ),
@@ -423,16 +423,16 @@ class _MapEditPageState extends State<MapEditPage> {
             color: isActive ? color : Colors.grey,
             onPressed: () {
                if (isActive) {
-                selectedTool = null; // 取消选择
+                selectedTool = null; // Deselect
                 game.setSelectedTool(null);
-                // 退出所有点位编辑模式
+                // Exit all waypoint editing modes
                 for (final wp in game.wayPoints) {
                   wp.setEditMode(false);
                 }
               } else {
-                selectedTool = toolName; // 选择工具
+                selectedTool = toolName; // Select tool
                 game.setSelectedTool(toolName);
-                // 切换到其他工具时退出所有点位编辑模式
+                // Exit all waypoint editing modes when switching to other tools
                 if (toolName != EditToolType.addNavPoint) {
                   for (final wp in game.wayPoints) {
                     wp.setEditMode(false);
@@ -466,14 +466,14 @@ class _MapEditPageState extends State<MapEditPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 如果有选中的导航点，显示导航点信息
+            // If there's a selected navigation point, show its information
             if (selectedWayPointInfo != null) ...[
               _buildWayPointInfo(theme),
               const SizedBox(height: 16),
             ] else ...[
-              // 否则显示编辑模式说明
+              // Otherwise show edit mode instructions
               Text(
-                '编辑模式说明',
+                'Edit Mode Instructions',
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -482,8 +482,8 @@ class _MapEditPageState extends State<MapEditPage> {
               
               _buildInstructionItem(
                 icon: Icons.add_location,
-                title: '添加导航点',
-                description: '选择工具后双击地图添加导航点',
+                title: 'Add Navigation Point',
+                description: 'Select tool then double-click map to add navigation point',
                 color: Colors.blue,
               ),
               
@@ -491,8 +491,8 @@ class _MapEditPageState extends State<MapEditPage> {
               
               _buildInstructionItem(
                 icon: Icons.brush,
-                title: '绘制障碍物',
-                description: '拖拽鼠标绘制障碍物区域',
+                title: 'Draw Obstacle',
+                description: 'Drag mouse to draw obstacle areas',
                 color: Colors.red,
               ),
               
@@ -500,8 +500,8 @@ class _MapEditPageState extends State<MapEditPage> {
               
               _buildInstructionItem(
                 icon: Icons.auto_fix_high,
-                title: '擦除障碍物',
-                description: '拖拽鼠标擦除障碍物区域',
+                title: 'Erase Obstacle',
+                description: 'Drag mouse to erase obstacle areas',
                 color: Colors.green,
               ),
               
@@ -509,15 +509,15 @@ class _MapEditPageState extends State<MapEditPage> {
               
               _buildInstructionItem(
                 icon: Icons.touch_app,
-                title: '导航点操作',
-                description: '单击选中，拖拽移动，拖拽红点旋转，删除按钮删除选中',
+                title: 'Navigation Point Operations',
+                description: 'Click to select, drag to move, drag red dot to rotate, delete button to remove selected',
                 color: Colors.orange,
               ),
               
               const SizedBox(height: 16),
             ],
             
-            // 导航点计数显示
+            // Navigation point count display
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -534,14 +534,14 @@ class _MapEditPageState extends State<MapEditPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '导航点数量',
+                          'Navigation Points',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.blue,
                           ),
                         ),
                         Text(
-                          '${game.wayPointCount} 个',
+                          '${game.wayPointCount} points',
                           style: const TextStyle(fontSize: 12),
                         ),
                       ],
@@ -563,8 +563,8 @@ class _MapEditPageState extends State<MapEditPage> {
                   Icon(Icons.info, color: Colors.orange, size: 16),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(
-                      '提示：使用鼠标滚轮缩放，拖拽移动地图',
+                    child:                    Text(
+                      'Tip: Use mouse wheel to zoom, drag to move map',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.orange.shade700,
@@ -580,7 +580,7 @@ class _MapEditPageState extends State<MapEditPage> {
     );
   }
   
-  // 构建导航点信息显示
+  // Build navigation point information display
   Widget _buildWayPointInfo(ThemeData theme) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -597,7 +597,7 @@ class _MapEditPageState extends State<MapEditPage> {
               Icon(Icons.location_on, color: Colors.blue, size: 20),
               const SizedBox(width: 8),
               Text(
-                '导航点信息',
+                'Navigation Point Info',
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: Colors.blue,
@@ -607,14 +607,14 @@ class _MapEditPageState extends State<MapEditPage> {
           ),
           const SizedBox(height: 12),
           
-          _buildInfoRow('名称', selectedWayPointInfo!.name),
-          _buildInfoRow('X坐标', '${selectedWayPointInfo!.x.toStringAsFixed(2)} m'),
-          _buildInfoRow('Y坐标', '${selectedWayPointInfo!.y.toStringAsFixed(2)} m'),
-          _buildInfoRow('方向', '${(selectedWayPointInfo!.theta * 180 / 3.14159).toStringAsFixed(1)}°'),
+          _buildInfoRow('Name', selectedWayPointInfo!.name),
+          _buildInfoRow('X Coord', '${selectedWayPointInfo!.x.toStringAsFixed(2)} m'),
+          _buildInfoRow('Y Coord', '${selectedWayPointInfo!.y.toStringAsFixed(2)} m'),
+          _buildInfoRow('Orientation', '${(selectedWayPointInfo!.theta * 180 / 3.14159).toStringAsFixed(1)}°'),
           
           const SizedBox(height: 12),
           
-          // 操作区：删除选中
+          // Operation area: delete selected
           Row(
             children: [
               Expanded(
@@ -628,7 +628,7 @@ class _MapEditPageState extends State<MapEditPage> {
                     });
                   },
                   icon: const Icon(Icons.delete, size: 16),
-                  label: const Text('删除'),
+                  label: const Text('Delete'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
                     foregroundColor: Colors.white,
@@ -643,7 +643,7 @@ class _MapEditPageState extends State<MapEditPage> {
     );
   }
   
-  // 构建信息行
+  // Build information row
   Widget _buildInfoRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -703,7 +703,7 @@ class _MapEditPageState extends State<MapEditPage> {
     );
   }
   
-  // 构建添加机器人位置按钮
+  // Build add robot position button
   Widget _buildAddRobotPositionButton(BuildContext context, ThemeData theme) {
     return AnimatedOpacity(
       opacity: selectedTool == EditToolType.addNavPoint ? 1.0 : 0.0,
@@ -711,7 +711,7 @@ class _MapEditPageState extends State<MapEditPage> {
       child: ElevatedButton.icon(
         onPressed: selectedTool == EditToolType.addNavPoint ? _onAddRobotPositionButtonPressed : null,
         icon: const Icon(Icons.my_location, size: 18),
-        label: const Text('使用当前位置'),
+        label: const Text('Use Current Position'),
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.blue,
           foregroundColor: Colors.white,
@@ -725,20 +725,20 @@ class _MapEditPageState extends State<MapEditPage> {
     );
   }
   
-  // 按钮点击处理
+  // Button click handler
   void _onAddRobotPositionButtonPressed() async {
     await game.addNavPointAtRobotPosition();
   }
   
-  // 根据工具类型获取鼠标光标
+  // Get mouse cursor based on tool type
   MouseCursor _getCursorForTool(EditToolType? tool) {
     switch (tool) {
       case EditToolType.addNavPoint:
         return SystemMouseCursors.precise;
       case EditToolType.drawObstacle:
-        return SystemMouseCursors.precise; // 隐藏系统光标，使用自定义画笔光标
+        return SystemMouseCursors.precise; // Hide system cursor, use custom brush cursor
       case EditToolType.eraseObstacle:
-        return SystemMouseCursors.precise; // 隐藏系统光标，使用自定义方块光标
+        return SystemMouseCursors.precise; // Hide system cursor, use custom square cursor
       case null:
         return SystemMouseCursors.basic;
     }

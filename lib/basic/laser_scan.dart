@@ -48,7 +48,7 @@ class LaserScan {
           [];
     } catch (e) {
       print("Error parsing LaserScan data: $e");
-      // 设置默认值
+      // Set default values
       ranges = [];
       intensities = [];
     }

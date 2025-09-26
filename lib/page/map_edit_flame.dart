@@ -14,7 +14,7 @@ import 'package:ros_flutter_gui_app/basic/RobotPose.dart';
 import 'package:ros_flutter_gui_app/page/map_edit_page.dart';
 
 
-// 专门的地图编辑Flame组件
+// Dedicated map editing Flame component
 class MapEditFlame extends FlameGame {
   late MapComponent _displayMap;
   late GridComponent _displayGrid;
@@ -26,30 +26,30 @@ class MapEditFlame extends FlameGame {
 
   RobotPose currentRobotPose = RobotPose.zero();
   
-  // 地图变换参数
+  // Map transformation parameters
   double mapScale = 1.0;
   
-  // 主题模式
+  // Theme mode
   bool isDarkMode = true;
   
-  // 当前选中的编辑工具
+  // Currently selected editing tool
   EditToolType? selectedTool;
   
-  // 回调函数，用于通知外部添加导航点
+  // Callback function to notify external addition of navigation points
   Future<NavPoint?> Function(double x, double y)? onAddNavPoint;
   
-  // 回调函数，用于通知外部导航点选择状态变化
+  // Callback function to notify external navigation point selection state changes
   VoidCallback? onWayPointSelectionChanged;
   
-  // 回调函数，用于通知外部当前选中点位动态更新
+  // Callback function to notify external dynamic updates of currently selected points
   VoidCallback? currentSelectPointUpdate;
   
-  // 导航点组件列表
+  // Navigation point component list
   final List<PoseComponent> wayPoints = [];
   
   PoseComponent? currentSelectedWayPoint;
   
-  // 手势相关变量
+  // Gesture-related variables
   double _baseScale = 1.0;
   Vector2? _lastFocalPoint;
   
@@ -60,7 +60,7 @@ class MapEditFlame extends FlameGame {
     this.onWayPointSelectionChanged,
     this.currentSelectPointUpdate,
   }) {
-    // 初始化主题模式
+    // Initialize theme mode
     isDarkMode = themeProvider?.themeMode == ThemeMode.dark;
   }
   
@@ -70,20 +70,20 @@ class MapEditFlame extends FlameGame {
   
 
   
-  // 设置当前选中的工具
+  // Set currently selected tool
   void setSelectedTool(EditToolType? tool) {
     selectedTool = tool;
   }
   
-  // 使用当前机器人位置添加导航点
+  // Add navigation point using current robot position
   Future<void> addNavPointAtRobotPosition() async {
     if (selectedTool != EditToolType.addNavPoint) return;
     
-    // 使用当前机器人位置添加导航点
+    // Add navigation point using current robot position
     final result = await onAddNavPoint!(currentRobotPose.x, currentRobotPose.y);
     if (result != null) {
-      print('使用机器人位置添加导航点: $result x: ${currentRobotPose.x} y: ${currentRobotPose.y}');
-      // 创建新的导航点，使用机器人当前朝向
+      print('Added navigation point using robot position: $result x: ${currentRobotPose.x} y: ${currentRobotPose.y}');
+      // Create new navigation point using robot's current orientation
       final navPointWithRobotPose = NavPoint(
         name: result.name,
         x: currentRobotPose.x,
@@ -93,16 +93,16 @@ class MapEditFlame extends FlameGame {
       );
       addWayPoint(navPointWithRobotPose);
     } else {
-      print('用户取消了使用机器人位置添加导航点');
+      print('User cancelled adding navigation point using robot position');
     }
   }
   
-  // 获取当前选中的导航点
+  // Get currently selected navigation point
   PoseComponent? get selectedWayPoint {
     return currentSelectedWayPoint;
   }
   
-  // 获取当前选中导航点的信息
+  // Get information of currently selected navigation point
   NavPoint? getSelectedWayPointInfo() {
     final wayPoint = selectedWayPoint;
     if (wayPoint == null) return null;
@@ -127,7 +127,7 @@ class MapEditFlame extends FlameGame {
     return pointInfo;
   }
   
-  // 获取所有导航点的信息
+  // Get information of all navigation points
   List<NavPoint> getAllWayPoint() {
     List<NavPoint> allWayPoints = [];
     
@@ -162,12 +162,12 @@ class MapEditFlame extends FlameGame {
   Future<void> onLoad() async {
     super.onLoad();
     
-    // 添加地图组件
+    // Add map component
     _displayMap = MapComponent(rosChannel: rosChannel);
     world.add(_displayMap);
     _displayMap.updateThemeMode(isDarkMode);
     
-    // 添加网格组件
+    // Add grid component
     _displayGrid = GridComponent(
       size: size,
       rosChannel: rosChannel,
@@ -175,13 +175,13 @@ class MapEditFlame extends FlameGame {
     _displayGrid.updateThemeMode(isDarkMode);
     world.add(_displayGrid);
     
-    // 设置ROS监听器
+    // Set up ROS listeners
     _setupRosListeners();
   }
   
   void _setupRosListeners() {
     if (rosChannel != null) {
-      // 监听地图数据
+      // Listen for map data
       rosChannel!.map_.addListener(() {
         _displayMap.updateMapData(rosChannel!.map_.value);
       });
@@ -190,21 +190,21 @@ class MapEditFlame extends FlameGame {
         currentRobotPose = rosChannel!.robotPoseMap.value;
       });
       
-      // 立即更新地图数据
+      // Immediately update map data
       _displayMap.updateMapData(rosChannel!.map_.value);
     }
   }
   
-  // 处理单击事件，实现双击检测
+  // Handle single click events, implement double-click detection
   Future<bool> onTapDown(Vector2 position) async {
     if (selectedTool == EditToolType.addNavPoint) {
-      // position 为 GestureDetector.localPosition
+      // position is GestureDetector.localPosition
       final worldPoint = camera.globalToLocal(position);
       final clickedWayPoint = _findWayPointAtPosition(worldPoint);
       
       if (clickedWayPoint != null) {
         print('clickedWayPoint: ${clickedWayPoint.navPoint?.name}');
-        // 选中导航点
+        // Select navigation point
         _selectWayPoint(clickedWayPoint);
         currentSelectPointUpdate?.call();
         return true;
@@ -219,70 +219,70 @@ class MapEditFlame extends FlameGame {
 
         final result = await onAddNavPoint!(mapX, mapY);
         if (result != null) {
-          print('导航点添加结果: $result mapX: $mapX mapY: $mapY');
-          // 用户确定了名称，创建新的导航点
+          print('Navigation point addition result: $result mapX: $mapX mapY: $mapY');
+          // User confirmed the name, create new navigation point
           addWayPoint(result);
         } else {
-          print('用户取消了导航点添加');
+          print('User cancelled navigation point addition');
         }
       
         return true;  
   
     }else if(selectedTool == EditToolType.drawObstacle){
-      // 绘制障碍物
+      // Draw obstacles
       
       return true;
     }
     return false;
   }
   
-  // 地图拖拽改由 onScaleStart/Update/End 处理
+  // Map dragging is now handled by onScaleStart/Update/End
   
-  // 处理缩放开始
+  // Handle scale start
   bool onScaleStart(Vector2 position) {
     _baseScale = mapScale;
     _lastFocalPoint = position;
     return true;
   }
   
-  // 处理缩放更新
+  // Handle scale update
   bool onScaleUpdate(double scale, Vector2 position) {
     if (_lastFocalPoint == null) return false;
     
-    // 计算新的缩放值
+    // Calculate new scale value
     final newScale = (_baseScale * scale).clamp(minScale, maxScale);
     
-    // 应用缩放
+    // Apply scaling
     mapScale = newScale;
     camera.viewfinder.zoom = mapScale;
     
-    // 计算焦点偏移
+    // Calculate focal point offset
     final focalPointDelta = position - _lastFocalPoint!;
     camera.viewfinder.position -= focalPointDelta / camera.viewfinder.zoom;
     _lastFocalPoint = position;
     return true;
   }
   
-  // 处理缩放结束
+  // Handle scale end
   bool onScaleEnd() {
     _lastFocalPoint = null;
     return true;
   }
   
-  // 处理滚轮缩放
+  // Handle scroll wheel zoom
   bool onScroll(double delta, Vector2 position) {
     const zoomSensitivity = 0.5;
     double zoomChange = -delta.sign * zoomSensitivity;
     final newZoom = (camera.viewfinder.zoom + zoomChange).clamp(minScale, maxScale);
     
-    // 获取鼠标位置在世界坐标中的位置
+    // Get mouse position in world coordinates
     final worldPoint = camera.globalToLocal(position);
     
-    // 应用缩放
+    // Apply scaling
     camera.viewfinder.zoom = newZoom;
     mapScale = newZoom;
     
-    // 调整相机位置以保持鼠标位置不变
+    // Adjust camera position to keep mouse position unchanged
     final newScreenPoint = camera.localToGlobal(worldPoint);
     final offset = position - newScreenPoint;
     camera.viewfinder.position -= offset / camera.viewfinder.zoom;
@@ -290,7 +290,7 @@ class MapEditFlame extends FlameGame {
     return true;
   }
   
-  // 创建导航点
+  // Create navigation point
   PoseComponent addWayPoint(NavPoint navPoint) {
     final wayPoint = PoseComponent(
       PoseComponentSize: globalSetting.robotSize,
@@ -299,7 +299,7 @@ class MapEditFlame extends FlameGame {
       isEditMode: false,
       direction: navPoint.theta,
       onPoseChanged: (RobotPose pose) {
-        // 调用拖拽更新回调
+        // Call drag update callback
         currentSelectPointUpdate?.call();
       },
       navPoint: navPoint,
@@ -307,41 +307,41 @@ class MapEditFlame extends FlameGame {
       poseType: PoseType.waypoint,
     );
     
-    wayPoint.priority = 1000; // 确保在最上层
+    wayPoint.priority = 1000; // Ensure on top layer
     wayPoint.updatePose(RobotPose(navPoint.x, navPoint.y, navPoint.theta));
 
-    // 添加到WayPoint列表和世界中
+    // Add to WayPoint list and world
     wayPoints.add(wayPoint);
     world.add(wayPoint);
     
-    // 新增点位默认选中并显示编辑环
+    // New point is selected by default and shows edit ring
     _selectWayPoint(wayPoint);
     wayPoint.setEditMode(false);
     return wayPoint;
   }
   
   
-  // 删除选中的导航点
+  // Delete selected navigation point
   String deleteSelectedWayPoint() {
     if (selectedWayPoint != null) {
       var name = selectedWayPoint?.navPoint?.name;
       wayPoints.remove(selectedWayPoint);
       selectedWayPoint?.removeFromParent();
       
-      // 通知选择状态变化
+      // Notify selection state change
       onWayPointSelectionChanged?.call();
       return name!;
     }
     return "";
   }
   
-  // 获取导航点数量
+  // Get navigation point count
   int get wayPointCount => wayPoints.length;
   
-  // 查找指定位置的导航点
+  // Find navigation point at specified position
   PoseComponent? _findWayPointAtPosition(Vector2 position) {
     for (final wayPoint in wayPoints) {
-      // 使用containsPoint方法检测点击，与MainFlame的实现保持一致
+      // Use containsPoint method to detect clicks, consistent with MainFlame implementation
       if (wayPoint.containsPoint(position)) {
         return wayPoint;
       }
@@ -351,10 +351,10 @@ class MapEditFlame extends FlameGame {
     return null;
   }
   
-  // 选中导航点
+  // Select navigation point
   void _selectWayPoint(PoseComponent wayPoint) {
     currentSelectedWayPoint = wayPoint;
-    // 取消其他导航点的选中状态
+    // Deselect other navigation points
     for (final wp in wayPoints) {
       if (wp.navPoint?.name != wayPoint.navPoint?.name) {
         wp.setEditMode(false);
@@ -362,10 +362,10 @@ class MapEditFlame extends FlameGame {
     }
     wayPoint.setEditMode(true);
     
-    // 通知外部导航点选择状态变化
+    // Notify external navigation point selection state change
     onWayPointSelectionChanged?.call();
     
-    // 通知外部当前选中点位动态更新
+    // Notify external dynamic update of currently selected point
     currentSelectPointUpdate?.call();
   }
 }

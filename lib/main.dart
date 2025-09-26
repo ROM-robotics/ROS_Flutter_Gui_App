@@ -22,17 +22,17 @@ import 'package:oktoast/oktoast.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // 设置全局错误处理
+  // Set up global error handling
   FlutterError.onError = (FlutterErrorDetails details) {
     print('Flutter Error: ${details.exception}');
     print('Stack trace: ${details.stack}');
   };
   
-  // 捕获未处理的异步异常
+  // Catch unhandled async exceptions
   PlatformDispatcher.instance.onError = (error, stack) {
     print('Unhandled async error: $error');
     print('Stack trace: $stack');
-    return true; // 防止程序崩溃
+    return true; // Prevent app crashes
   };
   
   await _setInitialOrientation();
@@ -66,16 +66,16 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  Locale _locale = Locale('en'); // 默认语言
+  Locale _locale = Locale('en'); // Default language
 
   @override
   void initState() {
     super.initState();
-    _loadLocale(); // 加载保存的语言设置
+    _loadLocale(); // Load saved language settings
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
     WakelockPlus.toggle(enable: true);
 
-    // 将 globalSetting.setLanguage 的赋值移到 initState 中
+    // Move globalSetting.setLanguage assignment to initState
     globalSetting.setLanguage = (Locale locale) {
       setState(() {
         _locale = locale;
@@ -101,7 +101,7 @@ class _MyAppState extends State<MyApp> {
       child: MaterialApp(
       title: 'Ros Flutter GUI App',
       debugShowCheckedModeBanner: false,
-      locale: _locale, // 设置应用的语言
+      locale: _locale, // Set application language
       localizationsDelegates: [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
@@ -137,7 +137,7 @@ class _MyAppState extends State<MyApp> {
           ),
         ),
         iconTheme: IconThemeData(
-          color: Colors.black, // 设置全局图标颜色为绿色
+          color: Colors.black, // Set global icon color to black
         ),
         cardColor: Color.fromRGBO(230, 230, 230, 1),
         scaffoldBackgroundColor: Colors.white,
@@ -147,8 +147,8 @@ class _MyAppState extends State<MyApp> {
               elevation: 10.0,
               shape: StadiumBorder(
                 side: BorderSide(
-                  color: Colors.grey[300]!, // 设置边框颜色
-                  width: 1.0, // 设置边框宽度
+                  color: Colors.grey[300]!, // Set border color
+                  width: 1.0, // Set border width
                 ),
               ),
             ),
@@ -173,15 +173,15 @@ class _MyAppState extends State<MyApp> {
         scaffoldBackgroundColor: Color.fromRGBO(40, 40, 40, 1),
         appBarTheme: AppBarTheme(elevation: 0),
         iconTheme: IconThemeData(
-          color: Colors.white, // 设置全局图标颜色为绿色
+          color: Colors.white, // Set global icon color to white
         ),
         chipTheme: ThemeData.dark().chipTheme.copyWith(
               backgroundColor: Color.fromRGBO(60, 60, 60, 1),
               elevation: 10.0,
               shape: StadiumBorder(
                 side: BorderSide(
-                  color: Colors.white, // 设置边框颜色
-                  width: 1.0, // 设置边框宽度
+                  color: Colors.white, // Set border color
+                  width: 1.0, // Set border width
                 ),
               ),
             ),

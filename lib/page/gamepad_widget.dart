@@ -129,7 +129,7 @@ class _GamepadWidgetState extends State<GamepadWidget> {
               ),
             ),
 
-            //右摇杆单制角速度/前进后退
+            // Right joystick controls angular velocity/forward-backward
             Positioned(
               right: 30,
               bottom: 10,
@@ -152,7 +152,7 @@ class _GamepadWidgetState extends State<GamepadWidget> {
                       Provider.of<RosChannel>(context, listen: false)
                           .setVxRight(vx);
 
-                      //死区
+                      // Dead zone
                       if (details.y.abs() <= 0.2) {
                         Provider.of<RosChannel>(context, listen: false)
                             .setVxRight(0);

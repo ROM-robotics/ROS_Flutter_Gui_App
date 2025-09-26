@@ -33,7 +33,7 @@ class MainFlame extends FlameGame {
 
   List<NavPoint> offLineNavPoints = [];
 
-  // 新的Flame组件
+  // New Flame component
   late LaserComponent _laserComponent;
   late PathComponent _tracePathComponent;
   late PointCloudComponent _pointCloudComponent;
@@ -42,20 +42,20 @@ class MainFlame extends FlameGame {
   late CostMapComponent _globalCostMapComponent;
   late CostMapComponent _localCostMapComponent;
   
-  // 拓扑图层组件
+  // Topology layer component
   late TopologyLine _topologyLineComponent;
   late List<PoseComponent> _wayPointComponents;
   
-  // 机器人轮廓组件
+  // Robot footprint component
   late custom.PolygonComponent _robotFootprintComponent;
   
-  // 全局状态引用
+  // Global state reference
   late GlobalState globalState;
   
-  // NavPointManager 实例
+  // NavPointManager instance
   late NavPointManager navPointManager;
   
-  // 添加右侧信息面板相关变量
+  // Add right-side info panel related variables
   PoseComponent? selectedWayPoint;
   bool _showInfoPanel = false;
   Function(NavPoint?)? onNavPointTap;
@@ -65,11 +65,11 @@ class MainFlame extends FlameGame {
 
   bool isDarkMode=true;
 
-  // 地图变换参数（使用camera.viewfinder）
+  // Map transformation parameters (using camera.viewfinder)
   double mapScale = 1.0;
   Vector2 mapOffset = Vector2.zero();
   
-  // 手势相关变量
+  // Gesture-related variables
   double _baseScale = 1.0;
   Vector2? _lastFocalPoint;
 
@@ -84,7 +84,7 @@ class MainFlame extends FlameGame {
   }) {
     this.globalState = globalState;
     this.navPointManager = navPointManager;
-    // 初始化主题模式
+    // Initialize theme mode
     isDarkMode = themeProvider?.themeMode == ThemeMode.dark;
   }
   
@@ -95,10 +95,10 @@ class MainFlame extends FlameGame {
   Future<void> onLoad() async {
     super.onLoad();
     
-        // 加载图层设置
+        // Load layer settings
        await globalState.loadLayerSettings();
     
-       // 添加地图组件
+       // Add map component
       _displayMap = MapComponent(rosChannel: rosChannel);
       world.add(_displayMap);
       _displayMap.updateThemeMode(isDarkMode);
@@ -119,7 +119,7 @@ class MainFlame extends FlameGame {
       isGlobal: false
     );
 
-    // 初始化新的Flame组件
+    // Initialize new Flame components
     _laserComponent = LaserComponent(pointList: []);
     
     _pointCloudComponent = PointCloudComponent(
@@ -145,25 +145,25 @@ class MainFlame extends FlameGame {
     );
     _tracePathComponent.priority = 150;
 
-    // 初始化拓扑图层组件
+    // Initialize topology layer component
     _topologyLineComponent = TopologyLine(
       points: [],
       routes: [],
-      rosChannel: rosChannel, // 传入rosChannel以获取地图数据
+      rosChannel: rosChannel, // Pass rosChannel to get map data
     );
     
-    // 初始化机器人轮廓组件
+    // Initialize robot outline component
     _robotFootprintComponent = custom.PolygonComponent(
       pointList: [],
       color: Colors.green.withAlpha(50),
-      enableWaterDropAnimation: false, // 启用水波纹动画
+      enableWaterDropAnimation: false, // Enable water ripple animation
     );
     _robotFootprintComponent.priority = 1001;
     
-    // 立即添加到world中，确保动画系统能工作
+    // Add to world immediately to ensure animation system works
     world.add(_robotFootprintComponent);
     
-    //机器人位置 - 放在最上层
+    // Robot position - place on top layer
     _displayRobot = PoseComponent(
       PoseComponentSize: globalSetting.robotSize,
       color: Colors.blue,
@@ -180,13 +180,13 @@ class MainFlame extends FlameGame {
 
     _wayPointComponents = [];
     
-    // 监听ROS数据更新
+    // Listen to ROS data updates
     _setupRosListeners();
     
-    // 设置图层状态监听
+    // Set up layer state listening
     _setupLayerListeners();
     
-    // 根据初始图层状态添加组件
+    // Add components based on initial layer state
     _initializeLayerComponents();
 
   }
@@ -205,48 +205,48 @@ class MainFlame extends FlameGame {
     }
   }
 
-      // 加载导航点
+      // Load navigation points
   Future<void> _loadOfflineNavPoints() async {
-    // 使用传入的 NavPointManager 实例
+    // Use the passed NavPointManager instance
     offLineNavPoints = await navPointManager.loadNavPoints();
     
-    // 如果地图已经加载，立即更新拓扑图层
+    // If map is already loaded, update topology layer immediately
     if (rosChannel?.map_.value != null) {
       _updateTopologyLayers();
     }
   }
   
-  // 重新加载导航点和地图数据
+  // Reload navigation points and map data
   Future<void> reloadNavPointsAndMap() async {
-    print('重新加载导航点和地图数据...');
+    print('Reloading navigation points and map data...');
     
-    // 重新加载离线导航点
+    // Reload offline navigation points
     await _loadOfflineNavPoints();
     
-    // 如果地图已经加载，重新更新拓扑图层
+    // If map is already loaded, update topology layer again
     if (rosChannel?.map_.value != null) {
       _updateTopologyLayers();
     }
     
-    print('导航点和地图数据重新加载完成');
+    print('Navigation points and map data reload completed');
   }
 
   void _setupRosListeners() {
     rosChannel!.robotPoseMap.addListener(() {
-      // 使用新的updatePose方法更新机器人位置
+      // Use new updatePose method to update robot position
       if(isRelocMode) return;
       _displayRobot.updatePose(rosChannel!.robotPoseMap.value);
       relocRobotPose=rosChannel!.robotPoseMap.value;
     });
     
-    // 监听机器人轮廓数据
+    // Listen to robot footprint data
     rosChannel!.robotFootprint.addListener(() {
       final footprintPoints = rosChannel!.robotFootprint.value;
         _robotFootprintComponent.updatePointList(footprintPoints);
       
     });
     
-    // 监听激光雷达数据
+    // Listen to laser radar data
     rosChannel!.laserPointData.addListener(() {
       if(rosChannel!.map_.value == null || rosChannel!.map_.value.mapConfig.resolution <= 0 || rosChannel!.map_.value.height() <= 0) return;
       final laserPoints = rosChannel!.laserPointData.value;
@@ -263,31 +263,31 @@ class MainFlame extends FlameGame {
       _laserComponent.updateLaser(vector2Points);
     });
     
-    // 监听点云数据
+    // Listen to point cloud data
     rosChannel!.pointCloud2Data.addListener(() {
       final pointCloudData = rosChannel!.pointCloud2Data.value;
       _pointCloudComponent.updatePoints(pointCloudData);
     });
     
-    // 监听全局路径
+    // Listen to global path
     rosChannel!.globalPath.addListener(() {
       final globalPathPoints = rosChannel!.globalPath.value;
       _globalPathComponent.updatePath(globalPathPoints);
     });
     
-    // 监听局部路径
+    // Listen to local path
     rosChannel!.localPath.addListener(() {
       final localPathPoints = rosChannel!.localPath.value;
       _localPathComponent.updatePath(localPathPoints);
     });
 
-    // 监听轨迹路径
+    // Listen to trace path
     rosChannel!.tracePath.addListener(() {
       final tracePathPoints = rosChannel!.tracePath.value;
       _tracePathComponent.updatePath(tracePathPoints);
     });
     
-    // 监听代价地图
+    // Listen to cost map
     rosChannel!.globalCostmap.addListener(() {
       _globalCostMapComponent.updateCostMap(rosChannel!.globalCostmap.value);
     });
@@ -296,27 +296,27 @@ class MainFlame extends FlameGame {
       _localCostMapComponent.updateCostMap(rosChannel!.localCostmap.value);
     });
     
-    // 监听地图数据
+    // Listen to map data
     rosChannel!.map_.addListener(() {
       _displayMap.updateMapData(rosChannel!.map_.value);
     });
     
-    // 监听拓扑地图数据
+    // Listen to topology map data
     rosChannel!.topologyMap_.addListener(() {
       _updateTopologyLayers();
     });
     
-    // 立即更新地图数据
+    // Immediately update map data
     _displayMap.updateMapData(rosChannel!.map_.value);
 
     _loadOfflineNavPoints();
     
-    // 立即更新拓扑图层数据
+    // Immediately update topology layer data
     _updateTopologyLayers();
   }
 
   
-  // 处理缩放开始
+  // Handle zoom start
   bool onScaleStart(Vector2 position) {
     _baseScale = mapScale;
     _lastFocalPoint = position;
@@ -324,11 +324,11 @@ class MainFlame extends FlameGame {
     return true;
   }
   
-  // 处理缩放更新（同时处理拖拽和缩放）
+  // Handle zoom update (simultaneously handle drag and zoom)
   bool onScaleUpdate(double scale, Vector2 position) {
     if (_lastFocalPoint == null) return false;
     
-    // 地图缩放/移动
+    // Map zoom/move
     final newScale = (_baseScale * scale).clamp(minScale, maxScale);
     mapScale = newScale;
     camera.viewfinder.zoom = mapScale;
@@ -340,26 +340,26 @@ class MainFlame extends FlameGame {
     return true;
   }
   
-  // 处理缩放结束
+  // Handle zoom end
   bool onScaleEnd() {
     _lastFocalPoint = null;
     return true;
   }
   
-  // 处理滚轮缩放
+  // Handle scroll wheel zoom
   bool onScroll(double delta, Vector2 position) {
     const zoomSensitivity = 0.5;
     double zoomChange = -delta.sign * zoomSensitivity;
     final newZoom = (camera.viewfinder.zoom + zoomChange).clamp(minScale, maxScale);
     
-    // 获取鼠标位置在世界坐标中的位置
+    // Get mouse position in world coordinates
     final worldPoint = camera.globalToLocal(position);
     
-    // 应用缩放
+    // Apply zoom
     camera.viewfinder.zoom = newZoom;
     mapScale = newZoom;
     
-    // 调整相机位置以保持鼠标位置不变
+    // Adjust camera position to keep mouse position unchanged
     final newScreenPoint = camera.localToGlobal(worldPoint);
     final offset = position - newScreenPoint;
     camera.viewfinder.position -= offset / camera.viewfinder.zoom;
@@ -388,42 +388,42 @@ class MainFlame extends FlameGame {
     camera.viewfinder.zoom = mapScale;
   }
   
-  // 简化实现，只保留基本的点击效果
+  // Simplified implementation, keep only basic click effects
 
   @override
   void update(double dt) {
     super.update(dt);
-    // 这里可以添加游戏逻辑更新
+    // Game logic updates can be added here
   }
   
-  // 更新拓扑图层
+  // Update topology layer
   void _updateTopologyLayers() {
 
-    //有在线导航点时，就不再显示离线导航点
+    // When online navigation points exist, no longer display offline navigation points
     if (rosChannel?.topologyMap_.value == null) {
-      print('拓扑地图数据为空，跳过更新');
+      print('Topology map data is empty, skip update');
       return;
     }
     
     final topologyMap = rosChannel!.topologyMap_.value;
     
-    print('更新在线拓扑图层: ${topologyMap.points.length} 个点, ${topologyMap.routes.length} 条路径 离线导航点数量: ${offLineNavPoints.length}');
+    print('Update online topology layer: ${topologyMap.points.length} points, ${topologyMap.routes.length} routes, offline navigation points: ${offLineNavPoints.length}');
     
     List<NavPoint> navPoints =offLineNavPoints;
     if(topologyMap.points.isNotEmpty){
       navPoints = List<NavPoint>.from(topologyMap.points);
-      print('使用在线拓扑点位');
+      print('Using online topology points');
     }
 
-    // 更新拓扑线组件数据，但不直接添加到world
+    // Update topology line component data, but don't add directly to world
     _topologyLineComponent.removeFromParent();
     _topologyLineComponent = TopologyLine(
       points: topologyMap.points,
       routes: topologyMap.routes,
-      rosChannel: rosChannel, // 传递rosChannel参数
+      rosChannel: rosChannel, // Pass rosChannel parameter
     );
     
-    // 清除旧的路径点组件
+    // Clear old waypoint components
     for (final waypoint in _wayPointComponents) {
       waypoint.removeFromParent();
     }
@@ -433,7 +433,7 @@ class MainFlame extends FlameGame {
 
     
   
-    // 创建新的路径点组件
+    // Create new waypoint components
     for (final point in navPoints) {
       final waypoint = PoseComponent(
         PoseComponentSize: globalSetting.robotSize,
@@ -446,31 +446,31 @@ class MainFlame extends FlameGame {
         poseType: PoseType.waypoint,
       );
 
-      // 设置路径点位置（使用地图索引坐标）
+      // Set waypoint position (using map index coordinates)
       waypoint.updatePose(RobotPose(point.x, point.y, point.theta));
       print('waypoint: ${waypoint.position} point: $point');
       _wayPointComponents.add(waypoint);
       
     }
     
-    // 根据当前图层状态决定是否添加到world
+    // Decide whether to add to world based on current layer state
     if (globalState.isLayerVisible('showTopology')) {
-      // 添加拓扑线组件
+      // Add topology line component
       if (!world.contains(_topologyLineComponent)) {
         world.add(_topologyLineComponent);
       }
       
-      // 添加所有导航点组件
+      // Add all navigation point components
       for (final waypoint in _wayPointComponents) {
         if (!world.contains(waypoint)) {
           world.add(waypoint);
         }
       }
       
-      print('拓扑图层已更新，显示 ${_wayPointComponents.length} 个导航点');
+      print('Topology layer updated, displaying ${_wayPointComponents.length} navigation points');
     } else {
-      print('拓扑图层不可见，移除所有导航点组件');
-      // 当图层不可见时，移除所有导航点组件
+      print('Topology layer not visible, removing all navigation point components');
+      // When layer is not visible, remove all navigation point components
       for (final waypoint in _wayPointComponents) {
         if (world.contains(waypoint)) {
           waypoint.removeFromParent();
@@ -479,11 +479,11 @@ class MainFlame extends FlameGame {
     }
   }
   
-  // 设置图层状态监听
+  // Set up layer state listening
   void _setupLayerListeners() {
-    print('设置图层状态监听器...');
+    print('Setting up layer state listeners...');
     
-    // 定义图层组件映射
+    // Define layer component mapping
     final layerComponentMap = <String, Component>{
       'showGrid': _displayGrid,
       'showGlobalCostmap': _globalCostMapComponent,
@@ -497,26 +497,26 @@ class MainFlame extends FlameGame {
       'showRobotFootprint': _robotFootprintComponent,
     };
     
-    // 为每个图层设置监听器
+    // Set up listener for each layer
     for (final entry in layerComponentMap.entries) {
       final layerName = entry.key;
       final component = entry.value;
       
-      print('为图层 $layerName 设置监听器');
+      print('Setting up listener for layer $layerName');
       
       globalState.getLayerState(layerName).addListener(() {
         final isVisible = globalState.isLayerVisible(layerName);
-        print('图层 $layerName 状态变化: $isVisible');
+        print('Layer $layerName state changed: $isVisible');
         
         if (isVisible) {
           if (!world.contains(component)) {
-            print('添加组件 $layerName 到world');
+            print('Adding component $layerName to world');
             world.add(component);
           }
         } else {
           if (world.contains(component)) {
-            print('从world移除组件 $layerName');
-            // 添加安全检查，确保组件仍然有效
+            print('Removing component $layerName from world');
+            // Add safety check to ensure component is still valid
             if (component.isMounted) {
               component.removeFromParent();
             }
@@ -525,10 +525,10 @@ class MainFlame extends FlameGame {
       });
     }
     
-    // 特殊处理拓扑图层的路径点
+    // Special handling for topology layer waypoints
     globalState.getLayerState('showTopology').addListener(() {
       final isVisible = globalState.isLayerVisible('showTopology');
-      print('拓扑图层状态变化: $isVisible');
+      print('Topology layer state changed: $isVisible');
       
       if (isVisible) {
         if (!world.contains(_topologyLineComponent)) {
@@ -555,13 +555,13 @@ class MainFlame extends FlameGame {
       }
     });
     
-    // 根据初始状态设置组件显示
+    // Set component display based on initial state
     _updateLayerVisibility();
   }
   
-  // 根据图层状态更新组件可见性
+  // Update component visibility based on layer state
   void _updateLayerVisibility() {
-    // 定义图层组件映射
+    // Define layer component mapping
     final layerComponentMap = <String, Component>{
       'showGrid': _displayGrid,
       'showGlobalCostmap': _globalCostMapComponent,
@@ -575,7 +575,7 @@ class MainFlame extends FlameGame {
       'showRobotFootprint': _robotFootprintComponent,
     };
     
-    // 检查每个图层的可见性
+    // Check visibility of each layer
     for (final entry in layerComponentMap.entries) {
       final layerName = entry.key;
       final component = entry.value;
@@ -585,7 +585,7 @@ class MainFlame extends FlameGame {
       }
     }
     
-    // 特殊处理拓扑图层的路径点
+    // Special handling for topology layer waypoints
     if (!globalState.isLayerVisible('showTopology')) {
       for (final waypoint in _wayPointComponents) {
         if (world.contains(waypoint)) {
@@ -595,9 +595,9 @@ class MainFlame extends FlameGame {
     }
   }
 
-  // 根据初始图层状态添加组件
+  // Add components based on initial layer state
   void _initializeLayerComponents() {
-    print('初始化图层组件...');
+    print('Initializing layer components...');
     
     final layerComponentMap = <String, Component>{
       'showGrid': _displayGrid,
@@ -617,16 +617,16 @@ class MainFlame extends FlameGame {
       final component = entry.value;
       final isVisible = globalState.isLayerVisible(layerName);
       
-      print('图层 $layerName 初始状态: $isVisible');
+      print('Layer $layerName initial state: $isVisible');
 
       if (isVisible) {
         if (!world.contains(component)) {
-          print('初始添加组件 $layerName 到world');
+          print('Initially adding component $layerName to world');
           world.add(component);
         }
       } else {
         if (world.contains(component)) {
-          print('初始从world移除组件 $layerName');
+          print('Initially removing component $layerName from world');
           if (component.isMounted) {
             component.removeFromParent();
           }
@@ -634,9 +634,9 @@ class MainFlame extends FlameGame {
       }
     }
 
-    // 特殊处理拓扑图层的路径点
+    // Special handling for topology layer waypoints
     final topologyVisible = globalState.isLayerVisible('showTopology');
-    print('拓扑图层初始状态: $topologyVisible');
+    print('Topology layer initial state: $topologyVisible');
     
     if (topologyVisible) {
       if (!world.contains(_topologyLineComponent)) {
@@ -682,18 +682,18 @@ class MainFlame extends FlameGame {
 
 
   
-  // 获取信息面板显示状态
+  // Get info panel display state
   bool get showInfoPanel => _showInfoPanel;
   
-  // 隐藏信息面板
+  // Hide info panel
   void hideInfoPanel() {
     _showInfoPanel = false;
   }
   
-  // 检测点击的waypoint
+  // Detect clicked waypoint
   void onTap(Offset position) {
 
-    // 使用camera.globalToLocal转换坐标，参考map_edit_flame.dart的实现
+    // Use camera.globalToLocal to convert coordinates, refer to map_edit_flame.dart implementation
     final worldPoint = camera.globalToLocal(Vector2(position.dx, position.dy));
 
   
@@ -705,7 +705,7 @@ class MainFlame extends FlameGame {
           selectedWayPoint = waypoint;
           _showInfoPanel = true;
           onNavPointTap?.call(getSelectedWayPointInfo()!);
-          print('选中的导航点: ${waypoint.navPoint!.name}');
+          print('Selected navigation point: ${waypoint.navPoint!.name}');
         } 
        return;
       }
@@ -715,7 +715,7 @@ class MainFlame extends FlameGame {
     onNavPointTap?.call(null);
   }
   
-  // 设置机器人编辑模式
+  // Set robot edit mode
   void setRobotEditMode(bool edit) {
     _displayRobot.setEditMode(edit);
   }

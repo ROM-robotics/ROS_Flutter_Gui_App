@@ -6,9 +6,9 @@ enum NavPointType {
 }
 
 class NavPoint {
-  double x; // 地图坐标
-  double y; // 地图坐标
-  double theta; // 方向角度（弧度）
+  double x; // Map coordinate
+  double y; // Map coordinate
+  double theta; // Direction angle (radians)
   String name;
   NavPointType type;
 
@@ -20,7 +20,7 @@ class NavPoint {
     required this.type,
   });
 
-  // 从JSON创建NavPoint
+  // Create NavPoint from JSON
   factory NavPoint.fromJson(Map<String, dynamic> json) {
     return NavPoint(
       x: json['x'] as double,
@@ -31,7 +31,7 @@ class NavPoint {
     );
   }
 
-  // 转换为JSON
+  // Convert to JSON
   Map<String, dynamic> toJson() {
     return {
       'x': x,
@@ -42,7 +42,7 @@ class NavPoint {
     };
   }
 
-  // 复制并修改某些属性
+  // Copy and modify certain properties
   NavPoint copyWith({
     double? x,
     double? y,

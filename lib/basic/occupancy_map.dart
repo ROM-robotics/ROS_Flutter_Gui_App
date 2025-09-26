@@ -16,7 +16,7 @@ class MapConfig {
   double occupiedThresh = 0.65;
   int negate = 0;
   
-  // 保存YAML配置文件
+  // Save YAML configuration file
   void saveYaml(String filePath) {
     String yamlContent = '''
 image: $image
@@ -77,21 +77,21 @@ class OccupancyMap {
     
     for (int x = 0; x < mapConfig.height; x++) {
       for (int y = 0; y < mapConfig.width; y++) {
-        // 计算像素值
+        // Calculate pixel value
         int pixelValue = data[x][y];
-        //默认透明
+        // Default transparent
         List<int> colorRgba = [0,0,0,0]; 
         
-        //内切障碍，机器人内切半径，所能触及的区域，机器人进入此区域，一定会发生碰撞
+        // Inscribed obstacle - robot inscribed radius area, robot entering this area will definitely collide
         if(pixelValue==99){
-          // colorRgba = [0x80, 0x80, 0x80, 10];// 浅灰色
+          // colorRgba = [0x80, 0x80, 0x80, 10]; // Light gray
         }
         else if(pixelValue==100){
-          //实际障碍物点 致命障碍
-          colorRgba = [0x80, 0x80, 0x80, 255];// 灰色
+          // Actual obstacle point - lethal obstacle
+          colorRgba = [0x80, 0x80, 0x80, 255]; // Gray
         } 
         
-        // 将 RGBA 值添加到结果数组
+        // Add RGBA values to result array
         costMapData.addAll(colorRgba);
       }
     }
@@ -100,7 +100,7 @@ class OccupancyMap {
   }
 
   /**
-   * @description: 输入栅格地图的坐标，返回该位置的全局坐标
+   * @description: Input grid map coordinates, return global coordinates at that position
    * @return {*}
    */
   vm.Vector2 idx2xy(vm.Vector2 occPoint) {
@@ -111,7 +111,7 @@ class OccupancyMap {
   }
 
   /**
-   * @description: 输入全局坐标，返回栅格地图的行与列号
+   * @description: Input global coordinates, return row and column numbers of grid map
    * @return {*}
    */
   vm.Vector2 xy2idx(vm.Vector2 mapPoint) {
@@ -125,10 +125,10 @@ class OccupancyMap {
     String mapdatafile = path + ".pgm";
     print("Writing map occupancy data to $mapdatafile");
     
-    // 创建PGM文件头
+    // Create PGM file header
     String header = "P5\n# CREATOR: map_saver.cpp ${mapConfig.resolution.toStringAsFixed(3)} m/pix\n${width()} ${height()}\n255\n";
     
-    // 创建二进制数据
+    // Create binary data
     List<int> binaryData = [];
     for (int y = 0; y < height(); y++) {
       for (int x = 0; x < width(); x++) {
@@ -136,13 +136,13 @@ class OccupancyMap {
         int pixelValue;
         
         if (mapValue >= 0 && mapValue <= (mapConfig.freeThresh * 100).round()) {
-          // 自由区域 [0, free_thresh)
+          // Free area [0, free_thresh)
           pixelValue = 254;
         } else if (mapValue >= (mapConfig.occupiedThresh * 100).round()) {
-          // 占据区域 (occupied_thresh, 255]
+          // Occupied area (occupied_thresh, 255]
           pixelValue = 0;
         } else {
-          // 未知区域 [free_thresh, occupied_thresh]
+          // Unknown area [free_thresh, occupied_thresh]
           pixelValue = 205;
         }
         
@@ -150,26 +150,26 @@ class OccupancyMap {
       }
     }
     
-    // 写入文件：先写入文本头部，再写入二进制数据
+    // Write file: write text header first, then binary data
     File file = File(mapdatafile);
     file.writeAsStringSync(header);
     file.writeAsBytesSync(binaryData, mode: FileMode.append);
     
-    // 保存YAML配置文件
+    // Save YAML configuration file
     String mapmetadatafile = path + ".yaml";
     print("Writing map metadata to $mapmetadatafile");
     
-    // 设置图片路径
+    // Set image path
     String fileName = path.split('/').last;
     mapConfig.image = "./$fileName.pgm";
     
-    // 保存YAML配置
+    // Save YAML configuration
     mapConfig.saveYaml(mapmetadatafile);
   }
   
-  // 便捷保存方法，指定目录和文件名
+  // Convenient save method - specify directory and filename
   void saveMapToDirectory(String directory, String fileName) {
-    // 确保目录存在
+    // Ensure directory exists
     Directory dir = Directory(directory);
     if (!dir.existsSync()) {
       dir.createSync(recursive: true);
@@ -179,17 +179,17 @@ class OccupancyMap {
     saveMap(fullPath);
   }
   
-  // 保存到默认目录
+  // Save to default directory
   void saveMapDefault(String fileName) {
     String defaultDir = './maps';
     saveMapToDirectory(defaultDir, fileName);
   }
   
-  // 创建深拷贝
+  // Create deep copy
   OccupancyMap copy() {
     OccupancyMap newMap = OccupancyMap();
     
-    // 复制 MapConfig
+    // Copy MapConfig
     newMap.mapConfig.image = mapConfig.image;
     newMap.mapConfig.resolution = mapConfig.resolution;
     newMap.mapConfig.originX = mapConfig.originX;
@@ -201,7 +201,7 @@ class OccupancyMap {
     newMap.mapConfig.occupiedThresh = mapConfig.occupiedThresh;
     newMap.mapConfig.negate = mapConfig.negate;
     
-    // 深拷贝数据数组
+    // Deep copy data array
     newMap.data = List.generate(
       data.length,
       (i) => List<int>.from(data[i]),

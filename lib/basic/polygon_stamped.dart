@@ -1,7 +1,7 @@
 import 'package:ros_flutter_gui_app/basic/robot_path.dart';
 import 'package:ros_flutter_gui_app/basic/transform.dart';
 
-/// 表示一个点
+/// Represents a point
 class Point32 {
   final double x;
   final double y;
@@ -31,7 +31,7 @@ class Point32 {
   }
 }
 
-/// 表示一个多边形
+/// Represents a polygon
 class Polygon {
   final List<Point32> points;
 
@@ -59,7 +59,7 @@ class Polygon {
   }
 }
 
-/// 表示带时间戳的多边形
+/// Represents a polygon with timestamp
 class PolygonStamped {
   final Header? header;
   final Polygon? polygon;

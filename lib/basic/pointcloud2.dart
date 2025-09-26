@@ -34,7 +34,7 @@ class PointCloud2 {
       rowStep = json['row_step'] as int? ?? 0;
       isDense = json['is_dense'] as bool? ?? false;
 
-      // 解析字段信息
+      // Parse field information
       if (json['fields'] != null) {
         if (json['fields'] is List) {
           fields = (json['fields'] as List<dynamic>)
@@ -46,13 +46,13 @@ class PointCloud2 {
         }
       }
 
-      // 解析点云数据
+      // Parse point cloud data
       if (json['data'] != null) {
         if (json['data'] is List) {
           List<int> dataList = List<int>.from(json['data']);
           data = Uint8List.fromList(dataList);
         } else if (json['data'] is String) {
-          // 尝试解析 Base64 编码的数据
+          // Try to parse Base64 encoded data
           try {
             data = base64Decode(json['data']);
             // print("Successfully decoded Base64 data, length: ${data!.length}");
@@ -92,12 +92,12 @@ class PointCloud2 {
     return data;
   }
 
-  // 获取点云中的点数量
+  // Get the number of points in the point cloud
   int get pointCount {
     return height! * width!;
   }
 
-  // 解析点云数据为3D点列表
+  // Parse point cloud data into 3D point list
   List<Point3D> getPoints() {
     List<Point3D> points = [];
     
@@ -107,7 +107,7 @@ class PointCloud2 {
       return points;
     }
 
-    // 查找x, y, z字段的偏移量
+    // Find x, y, z field offsets
     int? xOffset, yOffset, zOffset;
     for (PointField field in fields!) {
       switch (field.name) {
@@ -128,7 +128,7 @@ class PointCloud2 {
       return points;
     }
 
-    // 解析每个点
+    // Parse each point
     try {
       for (int i = 0; i < pointCount; i++) {
         int baseOffset = i * pointStep!;
@@ -153,7 +153,7 @@ class PointCloud2 {
     return points;
   }
 
-  // 从字节数组中提取浮点数
+  // Extract float from byte array
   double _getFloatFromBytes(Uint8List bytes, int offset) {
     if (offset < 0 || offset + 3 >= bytes.length) {
       return 0.0;

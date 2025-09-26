@@ -102,11 +102,11 @@ class RosChannel {
   RosChannel() {
     diagnosticManager = DiagnosticManager();
     
-    //启动定时器 获取机器人实时坐标
+    // Start timer to get robot real-time coordinates
     globalSetting.init().then((success) {
-       //监听链接状态
+       // Listen for connection status
 
-        //获取机器人实时坐标
+        // Get robot real-time coordinates
         Timer.periodic(const Duration(milliseconds: 50), (timer) {
           if (rosConnectState_ != Status.connected) return;
           try {
@@ -121,7 +121,7 @@ class RosChannel {
           }
         });
 
-        //重连
+        // Reconnection
         Timer.periodic(const Duration(seconds: 5), (timer) async {
           if (isReconnect_ && rosConnectState_ != Status.connected){
             showToast(
@@ -158,7 +158,7 @@ class RosChannel {
     rosConnectState_ = Status.none;
     ros = Ros(url: url);
 
-    // 设置状态监听器
+    // Set up status listener
     ros.statusStream.listen(
       (Status data) {
         rosConnectState_ = data;
@@ -169,10 +169,10 @@ class RosChannel {
       onDone: () {
         rosConnectState_ = Status.closed;
       },
-      cancelOnError: false, // 改为 false，让监听器继续工作
+      cancelOnError: false, // Set to false to keep listener working
     );
 
-      // 尝试连接
+      // Try to connect
       String error = await ros.connect();
     
       if (error != "") {
@@ -183,7 +183,7 @@ class RosChannel {
         isReconnect_ = true;
       }
       
-      // 连接成功，初始化通道
+      // Connection successful, initialize channels
       Timer(const Duration(seconds: 1), () async {
         await initChannel();
       });
@@ -322,8 +322,8 @@ class RosChannel {
 
     batteryChannel_ = Topic(
       ros: ros,
-      name: globalSetting.batteryTopic, // ROS 中的电池电量话题名称
-      type: 'sensor_msgs/BatteryState', // 消息类型
+      name: globalSetting.batteryTopic, // Battery level topic name in ROS
+      type: 'sensor_msgs/BatteryState', // Message type
       queueSize: 10,
       queueLength: 10,
     );
@@ -375,7 +375,7 @@ class RosChannel {
     );
     diagnosticChannel_.subscribe(diagnosticCallback);
 
-//发布者
+// Publishers
     relocChannel_ = Topic(
       ros: ros,
       name: globalSetting.relocTopic,
@@ -431,7 +431,7 @@ class RosChannel {
       var result = await topologyGoalService_.call(msg);
       print("result: $result");
       
-      // 检查result是否为字符串（错误信息）
+      // Check if result is a string (error message)
       if (result is String) {
         return {
           "is_success": false,
@@ -526,26 +526,26 @@ class RosChannel {
       cmdVelTimer = null;
     }
     
-    // 重置速度命令，确保机器人停止
+    // Reset speed commands to ensure robot stops
     cmdVel_.vx = 0;
     cmdVel_.vy = 0;
     cmdVel_.vw = 0;
     
-    // 发送一次停止命令
+    // Send stop command once
     sendSpeed(0, 0, 0);
   }
 
   Future<void> sendSpeed(double vx, double vy, double vw) async {
     Map<String, dynamic> msg = {
       "linear": {
-        "x": vx, // 代表线速度x分量
-        "y": vy, // 代表线速度y分量
-        "z": 0.0 // 代表线速度z分量
+        "x": vx, // Linear velocity x component
+        "y": vy, // Linear velocity y component
+        "z": 0.0 // Linear velocity z component
       },
       "angular": {
-        "x": 0.0, // 代表角速度x分量
-        "y": 0.0, // 代表角速度y分量
-        "z": vw // 代表角速度z分量
+        "x": 0.0, // Angular velocity x component
+        "y": 0.0, // Angular velocity y component
+        "z": vw // Angular velocity z component
       }
     };
     await speedCtrlChannel_.publish(msg);
@@ -620,17 +620,17 @@ class RosChannel {
   }
 
   Future<void> batteryCallback(Map<String, dynamic> message) async {
-    double percentage = message['percentage'] * 100; // 假设电量百分比在 0-1 范围内
+    double percentage = message['percentage'] * 100; // Assuming battery percentage is in 0-1 range
     battery_.value = percentage;
     // print("battery:$percentage");
   }
 
   Future<void> odomCallback(Map<String, dynamic> message) async {
-    // 解析线速度 (vx, vy)
+    // Parse linear velocity (vx, vy)
     double vx = message['twist']['twist']['linear']['x'];
     double vy = message['twist']['twist']['linear']['y'];
 
-    // 解析角速度 (vw)
+    // Parse angular velocity (vw)
     double vw = message['twist']['twist']['angular']['z'];
     RobotSpeed speed = RobotSpeed(vx: vx, vy: vy, vw: vw);
     robotSpeed_.value = speed;
@@ -668,7 +668,7 @@ class RosChannel {
   }
 
   Future<void> localCostmapCallback(Map<String, dynamic> msg) async {
-    DateTime currentTime = DateTime.now(); // 获取当前时间
+    DateTime currentTime = DateTime.now(); // Get current time
 
     if (_lastMapCallbackTime != null) {
       Duration difference = currentTime.difference(_lastMapCallbackTime!);
@@ -677,29 +677,29 @@ class RosChannel {
       }
     }
 
-    _lastMapCallbackTime = currentTime; // 更新上一次回调时间
+    _lastMapCallbackTime = currentTime; // Update last callback time
 
     try {
-      // 解析局部代价地图数据
+      // Parse local costmap data
       int width = msg["info"]["width"];
       int height = msg["info"]["height"];
       double resolution = msg["info"]["resolution"];
       double originX = msg["info"]["origin"]["position"]["x"];
       double originY = msg["info"]["origin"]["position"]["y"];
       
-      // 解析四元数获取旋转角度
+      // Parse quaternion to get rotation angle
       Map<String, dynamic> orientation = msg["info"]["origin"]["orientation"];
       double qx = orientation["x"]?.toDouble() ?? 0.0;
       double qy = orientation["y"]?.toDouble() ?? 0.0;
       double qz = orientation["z"]?.toDouble() ?? 0.0;
       double qw = orientation["w"]?.toDouble() ?? 1.0;
       
-      // 四元数转欧拉角
+      // Convert quaternion to Euler angles
       vm.Quaternion quaternion = vm.Quaternion(qx, qy, qz, qw);
       List<double> euler = quaternionToEuler(quaternion);
-      double originTheta = euler[0]; // yaw 角
+      double originTheta = euler[0]; // yaw angle
       
-      // 创建局部代价地图
+      // Create local costmap
       OccupancyMap costmap = OccupancyMap();
       costmap.mapConfig.resolution = resolution;
       costmap.mapConfig.width = width;
@@ -720,19 +720,19 @@ class RosChannel {
       }
       costmap.setFlip();
       
-      // 坐标系转换：将局部代价地图的基础坐标转换为 map 坐标系
+      // Coordinate system conversion: convert local costmap base coordinates to map coordinate system
       String frameId = msg["header"]["frame_id"];
       RobotPose originPose = RobotPose(0, 0, 0);
       
       try {
-        // 获取从局部坐标系到 map 坐标系的变换
+        // Get transform from local coordinate system to map coordinate system
         RobotPose transPose = tf_.lookUpForTransform(globalSetting.mapFrameName, frameId);
         
-        // 计算局部代价地图原点在 map 坐标系中的位置
+        // Calculate local costmap origin position in map coordinate system
         RobotPose localOrigin = RobotPose(originX, originY, originTheta);
         RobotPose mapOrigin = absoluteSum(transPose, localOrigin);
         
-        // 调整 Y 坐标（考虑地图翻转）
+        // Adjust Y coordinate (considering map flip)
         mapOrigin.y += costmap.heightMap();
         originPose = mapOrigin;
 
@@ -742,22 +742,22 @@ class RosChannel {
         return;
       }
       
-      // 将局部代价地图叠加到使用全局地图的size进行叠加
+      // Overlay local costmap using global map size
       OccupancyMap sizedCostMap = map_.value.copy();
       sizedCostMap.setZero();
       
-      // 使用 xy2idx 方法将代价地图左上角的世界坐标转换为栅格坐标
+      // Use xy2idx method to convert world coordinates of costmap top-left corner to grid coordinates
       vm.Vector2 occPoint = map_.value.xy2idx(vm.Vector2(originPose.x, originPose.y));
       double mapOX = occPoint.x;
       double mapOY = occPoint.y;
       
-      // 清空目标区域
+      // Clear target area
       for (int x = 0; x < sizedCostMap.mapConfig.height; x++) {
         for (int y = 0; y < sizedCostMap.mapConfig.width; y++) {
           if (x > mapOX && y > mapOY && 
               y < mapOY + costmap.mapConfig.height &&
               x < mapOX + costmap.mapConfig.width) {
-            // 在局部代价地图范围内，使用局部代价地图的值
+            // Within local costmap range, use local costmap values
             int localX = x - mapOX.toInt();
             int localY = y - mapOY.toInt();
             if (localX >= 0 && localX < costmap.mapConfig.height &&
@@ -765,11 +765,11 @@ class RosChannel {
               sizedCostMap.data[y][x] = costmap.data[localY][localX];
             }
           }
-          // 不在范围内，保持原值
+          // Not in range, keep original values
         }
       }
       
-      // 更新局部代价地图
+      // Update local costmap
       localCostmap.value = sizedCostMap;
     } catch (e) {
       print("Error processing local costmap: $e");
@@ -808,7 +808,7 @@ class RosChannel {
       newPath.add(vm.Vector2(poseScene.x, poseScene.y));
     }
     
-    // 使用新的列表赋值来触发监听器
+    // Use new list assignment to trigger listeners
     localPath.value = newPath;
   }
 
@@ -833,7 +833,7 @@ class RosChannel {
       newPath.add(vm.Vector2(poseScene.x, poseScene.y));
     }
     
-    // 使用新的列表赋值来触发监听器
+    // Use new list assignment to trigger listeners
     globalPath.value = newPath;
   }
 
@@ -858,7 +858,7 @@ class RosChannel {
       newPath.add(vm.Vector2(poseScene.x, poseScene.y));
     }
     
-    // 使用新的列表赋值来触发监听器
+    // Use new list assignment to trigger listeners
     tracePath.value = newPath;
   }
 
@@ -883,17 +883,17 @@ class RosChannel {
       // print("${laser.ranges![i]}");
       if (laser.ranges![i].isInfinite || laser.ranges![i].isNaN) continue;
       double dist = laser.ranges![i];
-      //null数据处理
+      // Handle null data
       if (dist == -1) continue;
       RobotPose poseLaser = RobotPose(dist * cos(angle), dist * sin(angle), 0);
 
-      //转换到map坐标系
+      // Convert to map coordinate system
       RobotPose poseBaseLink = absoluteSum(laserPoseBase, poseLaser);
 
       newLaserPoints.add(vm.Vector2(poseBaseLink.x, poseBaseLink.y));
     }
     
-    // 使用新的列表赋值来触发监听器
+    // Use new list assignment to trigger listeners
     laserBasePoint_.value = newLaserPoints;
     laserPointData.value = LaserData(
         robotPose: robotPoseMap.value, laserPoseBaseLink: newLaserPoints);
@@ -902,7 +902,7 @@ class RosChannel {
   DateTime? _lastMapCallbackTime;
 
   Future<void> mapCallback(Map<String, dynamic> msg) async {
-    DateTime currentTime = DateTime.now(); // 获取当前时间
+    DateTime currentTime = DateTime.now(); // Get current time
 
     if (_lastMapCallbackTime != null) {
       Duration difference = currentTime.difference(_lastMapCallbackTime!);
@@ -911,7 +911,7 @@ class RosChannel {
       }
     }
 
-    _lastMapCallbackTime = currentTime; // 更新上一次回调时间
+    _lastMapCallbackTime = currentTime; // Update last callback time
 
     OccupancyMap map = OccupancyMap();
     map.mapConfig.resolution = msg["info"]["resolution"];
@@ -921,10 +921,10 @@ class RosChannel {
     map.mapConfig.originY = msg["info"]["origin"]["position"]["y"];
     List<int> dataList = List<int>.from(msg["data"]);
     map.data = List.generate(
-      map.mapConfig.height, // 外层列表的长度
+      map.mapConfig.height, // Outer list length
       (i) => List.generate(
-        map.mapConfig.width, // 内层列表的长度
-        (j) => 0, // 初始化值
+        map.mapConfig.width, // Inner list length
+        (j) => 0, // Initial value
       ),
     );
     for (int i = 0; i < dataList.length; i++) {
@@ -943,17 +943,17 @@ class RosChannel {
   }
 
   Future<void> topologyMapCallback(Map<String, dynamic> msg) async {
-    // 延迟1秒执行 避免地图还未加载，点位就发过来了（只发送一次）
+    // Delay 1 second to avoid points being sent before map is loaded (sent only once)
     await Future.delayed(Duration(seconds: 1));
     
-    print("收到拓扑地图数据: $msg");
+    print("Received topology map data: $msg");
     
     final map = TopologyMap.fromJson(msg);
-    print("解析后的拓扑地图 - 点数量: ${map.points.length}, 路径数量: ${map.routes.length}");
+    print("Parsed topology map - point count: ${map.points.length}, route count: ${map.routes.length}");
 
-    // 创建新的 points 列表
+    // Create new points list
     final updatedPoints = map.points.map((point) {
-      // 创建新的 NavPoint 对象
+      // Create new NavPoint object
       return NavPoint(
         x: point.x,
         y: point.y,
@@ -963,7 +963,7 @@ class RosChannel {
       );
     }).toList();
 
-    // 创建新的 TopologyMap 对象，包含转换后的点和原始路径信息
+    // Create new TopologyMap object containing converted points and original route information
     final updatedMap = TopologyMap(
       points: updatedPoints, 
       routes: map.routes,
@@ -971,20 +971,20 @@ class RosChannel {
       mapProperty: map.mapProperty,
     );
 
-    print("更新后的拓扑地图 - 点数量: ${updatedMap.points.length}, 路径数量: ${updatedMap.routes.length}");
+    print("Updated topology map - point count: ${updatedMap.points.length}, route count: ${updatedMap.routes.length}");
     
-    // 更新 ValueNotifier
+    // Update ValueNotifier
     topologyMap_.value = updatedMap;
   }
 
   Future<void> updateTopologyMap(TopologyMap updatedMap) async {
-    // 转换为JSON并通过ROS发布
+    // Convert to JSON and publish via ROS
     try {
       final jsonData = updatedMap.toJson();
       await topologyMapUpdateChannel_.publish(jsonData);
-      print("拓扑地图已发布到ROS: ${updatedMap.points.length}个点, ${updatedMap.routes.length}条路径");
+      print("Topology map published to ROS: ${updatedMap.points.length} points, ${updatedMap.routes.length} routes");
     } catch (e) {
-      print("发布拓扑地图失败: $e");
+      print("Failed to publish topology map: $e");
     }
   }
 
@@ -997,10 +997,10 @@ class RosChannel {
     try {
       PointCloud2 pointCloud = PointCloud2.fromJson(msg);
       
-      // 获取点云数据
+      // Get point cloud data
       List<Point3D> points = pointCloud.getPoints();
       
-      // 转换坐标系：从点云坐标系到map坐标系
+      // Convert coordinate system: from point cloud coordinate system to map coordinate system
       String frameId = pointCloud.header!.frameId!;
       RobotPose transPose = RobotPose(0, 0, 0);
       
@@ -1011,7 +1011,7 @@ class RosChannel {
         return;
       }
       
-      // 转换所有点到map坐标系
+      // Convert all points to map coordinate system
       List<Point3D> transformedPoints = [];
       for (Point3D point in points) {
         RobotPose pointPose = RobotPose(point.x, point.y, 0);
@@ -1020,7 +1020,7 @@ class RosChannel {
       }
       
       
-      // 更新点云数据
+      // Update point cloud data
       pointCloud2Data.value = transformedPoints;
       
     } catch (e) {
@@ -1029,7 +1029,7 @@ class RosChannel {
   }
 
   Future<void> globalCostmapCallback(Map<String, dynamic> msg) async {
-    DateTime currentTime = DateTime.now(); // 获取当前时间
+    DateTime currentTime = DateTime.now(); // Get current time
 
     if (_lastMapCallbackTime != null) {
       Duration difference = currentTime.difference(_lastMapCallbackTime!);
@@ -1038,17 +1038,17 @@ class RosChannel {
       }
     }
 
-    _lastMapCallbackTime = currentTime; // 更新上一次回调时间
+    _lastMapCallbackTime = currentTime; // Update last callback time
 
     try {
-      // 解析全局代价地图数据
+      // Parse global costmap data
       int width = msg["info"]["width"];
       int height = msg["info"]["height"];
       double resolution = msg["info"]["resolution"];
       double originX = msg["info"]["origin"]["position"]["x"];
       double originY = msg["info"]["origin"]["position"]["y"];
       
-      // 创建全局代价地图
+      // Create global costmap
       OccupancyMap costmap = OccupancyMap();
       costmap.mapConfig.resolution = resolution;
       costmap.mapConfig.width = width;
@@ -1069,7 +1069,7 @@ class RosChannel {
       }
       costmap.setFlip();
       
-      // 直接更新全局代价地图，不需要resize
+      // Directly update global costmap, no resize needed
       globalCostmap.value = costmap;
     } catch (e) {
       print("Error processing global costmap: $e");
@@ -1080,10 +1080,10 @@ class RosChannel {
     try {
       DiagnosticArray diagnosticArray = DiagnosticArray.fromJson(msg);
       
-      // 更新诊断数据（保持向后兼容）
+      // Update diagnostic data (maintain backward compatibility)
       diagnosticData.value = diagnosticArray;
       
-      // 使用DiagnosticManager管理诊断状态
+      // Use DiagnosticManager to manage diagnostic states
       diagnosticManager.updateDiagnosticStates(diagnosticArray);
       
     } catch (e) {

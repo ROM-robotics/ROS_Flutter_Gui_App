@@ -25,13 +25,13 @@ class CostMapComponent extends Component {
   @override
   void onRemove() {
     _cachedImage?.dispose();
-    _cachedImage = null; // 设置为null防止后续绘制
+    _cachedImage = null; // Set to null to prevent subsequent drawing
     _lastProcessedMap = null;
     super.onRemove();
   }
 
   Future<void> updateCostMap(OccupancyMap costMap) async {
-    // 检查是否需要重新处理
+    // Check if reprocessing is needed
     if (_lastProcessedMap == costMap && _lastOpacity == opacity && _cachedImage != null) {
       return;
     }
@@ -86,7 +86,7 @@ class CostMapComponent extends Component {
 
   @override
   void render(Canvas canvas) {
-    // 添加额外的安全检查
+    // Add additional safety checks
     if (_cachedImage == null || !isMounted) {
       return;
     }
@@ -101,7 +101,7 @@ class CostMapComponent extends Component {
       canvas.drawImage(_cachedImage!, Offset.zero, paint);
     } catch (e) {
       print('Error rendering costmap: $e');
-      // 如果绘制失败，清理缓存的图像
+      // If drawing fails, clean up cached image
       _cachedImage?.dispose();
       _cachedImage = null;
     }

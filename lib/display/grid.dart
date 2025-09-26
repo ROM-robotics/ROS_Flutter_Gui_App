@@ -9,47 +9,47 @@ class GridComponent extends RectangleComponent with HasGameRef {
   
   GridComponent({required Vector2 size, this.rosChannel}) : super(
     size: size,
-    paint: Paint()..color = const Color(0xFF2C2C2C), // 深灰色背景
+    paint: Paint()..color = const Color(0xFF2C2C2C), // Dark gray background
   );
   
   void updateThemeMode(bool isDarkMode) {
     _isDarkMode = isDarkMode;
-    // 更新背景颜色
+    // Update background color
     if (_isDarkMode) {
-      paint = Paint()..color = const Color(0xFF2C2C2C); // 深灰色背景
+      paint = Paint()..color = const Color(0xFF2C2C2C); // Dark gray background
     } else {
-      paint = Paint()..color = Colors.white; // 白色背景
+      paint = Paint()..color = Colors.white; // White background
     }
   }
   
   @override
   void render(Canvas canvas) {
 
-    // 绘制网格
+    // Draw grid
     _renderGrid(canvas);
   }
   
   void _renderGrid(Canvas canvas) {
-    // 获取地图分辨率，计算1米对应的像素数
-    double gridStepPixels = 100.0; // 默认值
+    // Get map resolution, calculate pixels per 1 meter
+    double gridStepPixels = 100.0; // Default value
     
     if (rosChannel != null && rosChannel!.map_.value.mapConfig.resolution > 0) {
-      // 1米 / 分辨率(米/像素) = 像素数
+      // 1 meter / resolution(meters/pixel) = pixel count
       gridStepPixels = 1.0 / rosChannel!.map_.value.mapConfig.resolution;
     }
 
     
-    // 网格线画笔
+    // Grid line paint
     final paint = Paint()
       ..color = _isDarkMode ? Colors.white.withOpacity(0.2) : Colors.black.withOpacity(0.3)
       ..strokeWidth = 0.5
       ..style = PaintingStyle.stroke;
     
-    // 计算需要绘制的网格范围（基于画布大小，不考虑相机）
+    // Calculate grid range to draw (based on canvas size, ignoring camera)
     final canvasSize = size;
     
     canvas.save();
-    // 绘制垂直线（每1米一条）
+    // Draw vertical lines (one per meter)
     for (double x = 0; x <= canvasSize.x; x += gridStepPixels) {
       canvas.drawLine(
         Offset(x, 0),
@@ -58,7 +58,7 @@ class GridComponent extends RectangleComponent with HasGameRef {
       );
     }
     
-    // 绘制水平线（每1米一条）
+    // Draw horizontal lines (one per meter)
     for (double y = 0; y <= canvasSize.y; y += gridStepPixels) {
       canvas.drawLine(
         Offset(0, y),

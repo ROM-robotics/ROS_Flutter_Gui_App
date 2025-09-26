@@ -25,7 +25,7 @@ enum KeyName {
 
 class JoyStickEvent {
   late KeyName keyName;
-  bool reverse = false; //是否反转(反转填-1)Q
+  bool reverse = false; // Whether to reverse (fill -1 for reverse)
   double maxValue = 32767;
   double minValue = -32767;
   double value = 0;
@@ -49,7 +49,7 @@ String tempConfigTypeToString(TempConfigType type) {
 class Setting {
   late SharedPreferences prefs;
 
-// 定义一个映射关系，将Dart中的类名映射到JavaScript中的类名
+// Define a mapping relationship that maps class names from Dart to JavaScript
   Map<String, JoyStickEvent> axisMapping = {
     "AXIS_X": JoyStickEvent(KeyName.leftAxisX),
     "AXIS_Y": JoyStickEvent(KeyName.leftAxisY),
@@ -78,7 +78,7 @@ class Setting {
   Future<bool> init() async {
     prefs = await SharedPreferences.getInstance();
 
-    // 获取应用版本
+    // Get app version
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     String currentVersion = packageInfo.version;
 
@@ -88,13 +88,13 @@ class Setting {
       prefs.setString("version", currentVersion);
     }
 
-    // 从配置中加载手柄映射
+    // Load gamepad mapping from configuration
     await _loadGamepadMapping();
 
     return true;
   }
 
-  //设置语言回调
+  // Set language callback
   late Function(Locale locale) setLanguage;
 
   Future<void> _loadGamepadMapping() async {
@@ -104,11 +104,11 @@ class Setting {
       try {
         final mapping = jsonDecode(mappingStr);
 
-        // 清空现有映射
+        // Clear existing mappings
         axisMapping.clear();
         buttonMapping.clear();
 
-        // 加载 axisMapping
+        // Load axisMapping
         if (mapping['axisMapping'] != null) {
           (mapping['axisMapping'] as Map<String, dynamic>)
               .forEach((key, value) {
@@ -122,7 +122,7 @@ class Setting {
           });
         }
 
-        // 加载 buttonMapping
+        // Load buttonMapping
         if (mapping['buttonMapping'] != null) {
           (mapping['buttonMapping'] as Map<String, dynamic>)
               .forEach((key, value) {
@@ -137,14 +137,14 @@ class Setting {
         }
       } catch (e) {
         print('Error loading gamepad mapping: $e');
-        // 如果加载失败，使用默认映射
+        // If loading fails, use default mapping
         resetGamepadMapping();
       }
     }
   }
 
   KeyName _parseKeyName(String keyNameStr) {
-    // 移除 'KeyName.' 前缀
+    // Remove 'KeyName.' prefix
     final enumStr = keyNameStr.replaceAll('KeyName.', '');
     return KeyName.values.firstWhere(
       (e) => e.toString() == 'KeyName.$enumStr',
@@ -153,7 +153,7 @@ class Setting {
   }
 
   Future<void> saveGamepadMapping() async {
-    // 将默认映射保存到配置中
+    // Save default mapping to configuration
     final mapping = {
       'axisMapping': axisMapping.map((key, value) => MapEntry(key, {
             'keyName': value.keyName.toString(),
@@ -176,7 +176,7 @@ class Setting {
     axisMapping.clear();
     buttonMapping.clear();
 
-    // 恢复默认的轴映射
+    // Restore default axis mapping
     axisMapping.addAll({
       "AXIS_X": JoyStickEvent(KeyName.leftAxisX),
       "AXIS_Y": JoyStickEvent(KeyName.leftAxisY),
@@ -188,7 +188,7 @@ class Setting {
       "buttonUpDown": JoyStickEvent(KeyName.buttonUpDown),
     });
 
-    // 恢复默认的按钮映射
+    // Restore default button mapping
     buttonMapping.addAll({
       "KEYCODE_BUTTON_A": JoyStickEvent(KeyName.buttonA,
           maxValue: 1, minValue: 0, reverse: true),
@@ -204,7 +204,7 @@ class Setting {
           maxValue: 1, minValue: 0, reverse: true),
     });
 
-    // 将默认映射保存到配置中
+    // Save default mapping to configuration
     final mapping = {
       'axisMapping': axisMapping.map((key, value) => MapEntry(key, {
             'keyName': value.keyName.toString(),
@@ -522,7 +522,7 @@ class Setting {
     prefs.setString('OdometryTopic', topic);
   }
 
-  // 添加速度控制相关的方法
+  // Add speed control related methods
   void setSpeedCtrlTopic(String topic) {
     prefs.setString('SpeedCtrlTopic', topic);
   }
@@ -531,7 +531,7 @@ class Setting {
     return prefs.getString("SpeedCtrlTopic") ?? "/cmd_vel";
   }
 
-  // 添加最大速度设置方法
+  // Add maximum speed setting methods
   void setMaxVx(String value) {
     prefs.setString('MaxVx', value);
   }
@@ -548,7 +548,7 @@ class Setting {
     return TempConfigType.values[prefs.getInt("tempConfig") ?? 0];
   }
 
-  // 添加最大速度获取方法
+  // Add maximum speed getter methods
   double get maxVx {
     return double.parse(prefs.getString("MaxVx") ?? "0.1");
   }
@@ -561,7 +561,7 @@ class Setting {
     return double.parse(prefs.getString("MaxVw") ?? "0.3");
   }
 
-  // 添加图像设置方法
+  // Add image setting methods
   void setImagePort(String port) {
     prefs.setString('imagePort', port);
   }
@@ -578,7 +578,7 @@ class Setting {
     prefs.setDouble('imageHeight', height);
   }
 
-  // 添加框架名称设置方法
+  // Add frame name setting methods
   void setMapFrameName(String name) {
     prefs.setString('mapFrameName', name);
   }
@@ -587,12 +587,12 @@ class Setting {
     prefs.setString('baseLinkFrameName', name);
   }
 
-  // 添加通用配置设置方法
+  // Add general configuration setting methods
   void setConfig(String key, String value) {
     prefs.setString(key, value);
   }
 
-  // 基本设置相关方法
+  // Basic setting related methods
   void setRobotIp(String ip) {
     prefs.setString('robotIp', ip);
   }
@@ -601,13 +601,13 @@ class Setting {
     prefs.setString('robotPort', port);
   }
 
-  // 地图相关方法
+  // Map related methods
 
   void setMapMetadataTopic(String topic) {
     prefs.setString('mapMetadataTopic', topic);
   }
 
-  // 定位相关方法
+  // Localization related methods
 
   void setInitPoseTopic(String topic) {
     prefs.setString('initPoseTopic', topic);
@@ -617,7 +617,7 @@ class Setting {
     prefs.setString('amclPoseTopic', topic);
   }
 
-  // 导航相关方法
+  // Navigation related methods
   void setMoveBaseTopic(String topic) {
     prefs.setString('moveBaseTopic', topic);
   }
@@ -644,7 +644,7 @@ class Setting {
   void setTracePathTopic(String topic) {
     prefs.setString('tracePathTopic', topic);
   }
-  // 状态监控相关方法
+  // Status monitoring related methods
   void setRobotStatusTopic(String topic) {
     prefs.setString('robotStatusTopic', topic);
   }
@@ -653,7 +653,7 @@ class Setting {
     prefs.setString('jointStatesTopic', topic);
   }
   
-  // 图层开关配置相关方法
+  // Layer toggle configuration related methods
   void setShowGlobalCostmap(bool show) {
     prefs.setBool('showGlobalCostmap', show);
   }
@@ -694,7 +694,7 @@ class Setting {
     return prefs.getBool('showTopologyPath') ?? true;
   }
   
-  // 机器人尺寸相关方法
+  // Robot size related methods
   void setRobotSize(double size) {
     prefs.setDouble('robotSize', size);
   }
@@ -707,7 +707,7 @@ class Setting {
 
 Setting globalSetting = Setting();
 
-// 初始化全局配置
+// Initialize global configuration
 Future<bool> initGlobalSetting() async {
   return globalSetting.init();
 }

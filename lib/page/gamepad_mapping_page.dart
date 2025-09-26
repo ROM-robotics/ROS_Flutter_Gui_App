@@ -37,12 +37,12 @@ class _GamepadMappingPageState extends State<GamepadMappingPage> {
       value: 0);
 
   final Map<KeyName, String> _mappedKeys = {};
-  String _editingKey = ""; // 当前正在编辑的按键
+  String _editingKey = ""; // Currently editing key
   Map<String, MappingResult> _mappingResults = {};
 
   OverlayEntry? _overlayEntry;
 
-  String _msg = ""; // 添加用于显示消息的变量
+  String _msg = ""; // Variable for displaying messages
 
   @override
   void initState() {
@@ -58,7 +58,7 @@ class _GamepadMappingPageState extends State<GamepadMappingPage> {
       try {
         final mapping = jsonDecode(mappingStr);
         setState(() {
-          // 加载 axisMapping
+          // Load axisMapping
           if (mapping['axisMapping'] != null) {
             (mapping['axisMapping'] as Map<String, dynamic>)
                 .forEach((key, value) {
@@ -66,7 +66,7 @@ class _GamepadMappingPageState extends State<GamepadMappingPage> {
             });
           }
 
-          // 加载 buttonMapping
+          // Load buttonMapping
           if (mapping['buttonMapping'] != null) {
             (mapping['buttonMapping'] as Map<String, dynamic>)
                 .forEach((key, value) {
@@ -76,11 +76,11 @@ class _GamepadMappingPageState extends State<GamepadMappingPage> {
         });
       } catch (e) {
         print('Error loading gamepad mapping: $e');
-        // 加载失败时使用默认映射
+        // Use default mapping when loading fails
         _loadDefaultMappings();
       }
     } else {
-      // 如果没有保存的映射，使用默认映射
+      // If no saved mapping exists, use default mapping
       _loadDefaultMappings();
     }
   }
@@ -88,11 +88,11 @@ class _GamepadMappingPageState extends State<GamepadMappingPage> {
   void _loadDefaultMappings() {
     setState(() {
       _mappedKeys.clear();
-      // 加载默认的轴映射
+      // Load default axis mapping
       globalSetting.axisMapping.forEach((key, value) {
         _mappedKeys[value.keyName] = key;
       });
-      // 加载默认的按钮映射
+      // Load default button mapping
       globalSetting.buttonMapping.forEach((key, value) {
         _mappedKeys[value.keyName] = key;
       });
@@ -100,7 +100,7 @@ class _GamepadMappingPageState extends State<GamepadMappingPage> {
   }
 
   KeyName _parseKeyName(String keyNameStr) {
-    // 移除 'KeyName.' 前缀
+    // Remove 'KeyName.' prefix
     final enumStr = keyNameStr.replaceAll('KeyName.', '');
     return KeyName.values.firstWhere(
       (e) => e.toString() == 'KeyName.$enumStr',
@@ -109,13 +109,13 @@ class _GamepadMappingPageState extends State<GamepadMappingPage> {
   }
 
   void _startListening() {
-    _subscription?.cancel(); // 取消之前的订阅
+    _subscription?.cancel(); // Cancel previous subscription
     _subscription = Gamepads.events.listen((event) async {
       _recvEvent = event;
 
       var curAbsValue = _recvEvent.value.abs();
 
-      // 获取检测到的次数最多的值
+      // Get the value with the most detections
       double maxValue = 0;
       int maxCount = 0;
       MappingResult? maxResult;
@@ -131,99 +131,99 @@ class _GamepadMappingPageState extends State<GamepadMappingPage> {
 
       int detect_count = 10;
 
-      // 如果检测次数大于次数，则认为已经完成映射
+      // If detection count exceeds threshold, consider mapping complete
       if (maxCount >= detect_count) {
         _editingKey = "";
         // _mappedKeys[maxResult!.event!.key] = maxResult!.key;
         print(maxResult);
         _mappingResults = {};
         _editingKey = "";
-        // 显示成功的弹窗
+        // Show success popup
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('映射成功,当前键位映射到 ${maxResult!.key}')),
+            SnackBar(content: Text('Mapping successful, current key mapped to ${maxResult!.key}')),
           );
         }
 
-        // 保存映射
-        if (_editingKey == "左摇杆上") {
+        // Save mapping
+        if (_editingKey == "Left Stick Up") {
           JoyStickEvent j_event = JoyStickEvent(KeyName.leftAxisY);
-          //上为正值
+          // Up is positive value
           if (maxResult!.value < 0) {
             j_event.reverse = true;
           }
           j_event.maxValue = maxResult!.value;
 
           globalSetting.axisMapping[maxResult!.key] = j_event;
-        } else if (_editingKey == "左摇杆下") {
+        } else if (_editingKey == "Left Stick Down") {
           globalSetting.axisMapping[maxResult!.key]!.minValue =
               maxResult!.value;
-        } else if (_editingKey == "左摇杆左") {
+        } else if (_editingKey == "Left Stick Left") {
           JoyStickEvent j_event = JoyStickEvent(KeyName.leftAxisX);
-          //右为正值
+          // Right is positive value
           if (maxResult!.value > 0) {
             j_event.reverse = true;
           }
           j_event.minValue = maxResult!.value;
 
           globalSetting.axisMapping[maxResult!.key] = j_event;
-        } else if (_editingKey == "左摇杆右") {
+        } else if (_editingKey == "Left Stick Right") {
           globalSetting.axisMapping[maxResult!.key]!.maxValue =
               maxResult!.value;
-        } else if (_editingKey == "右摇杆上") {
+        } else if (_editingKey == "Right Stick Up") {
           JoyStickEvent j_event = JoyStickEvent(KeyName.rightAxisY);
-          //上为正值
+          // Up is positive value
           if (maxResult!.value < 0) {
             j_event.reverse = true;
           }
           j_event.maxValue = maxResult!.value;
 
           globalSetting.axisMapping[maxResult!.key] = j_event;
-        } else if (_editingKey == "右摇杆下") {
+        } else if (_editingKey == "Right Stick Down") {
           globalSetting.axisMapping[maxResult!.key]!.minValue =
               maxResult!.value;
-        } else if (_editingKey == "右摇杆左") {
+        } else if (_editingKey == "Right Stick Left") {
           JoyStickEvent j_event = JoyStickEvent(KeyName.rightAxisX);
-          //右为正值
+          // Right is positive value
           if (maxResult!.value > 0) {
             j_event.reverse = true;
           }
           j_event.minValue = maxResult!.value;
 
           globalSetting.axisMapping[maxResult!.key] = j_event;
-        } else if (_editingKey == "右摇杆右") {
+        } else if (_editingKey == "Right Stick Right") {
           globalSetting.axisMapping[maxResult!.key]!.maxValue =
               maxResult!.value;
-        } else if (_editingKey == "按钮 A") {
+        } else if (_editingKey == "Button A") {
           JoyStickEvent j_event = JoyStickEvent(KeyName.buttonA);
-          //右为正值
+          // Right is positive value
           if (maxResult!.value < 0) {
             j_event.reverse = true;
           }
           j_event.maxValue = maxResult!.value;
 
           globalSetting.axisMapping[maxResult!.key] = j_event;
-        } else if (_editingKey == "按钮 B") {
+        } else if (_editingKey == "Button B") {
           JoyStickEvent j_event = JoyStickEvent(KeyName.buttonB);
-          //右为正值
+          // Right is positive value
           if (maxResult!.value < 0) {
             j_event.reverse = true;
           }
           j_event.maxValue = maxResult!.value;
 
           globalSetting.axisMapping[maxResult!.key] = j_event;
-        } else if (_editingKey == "按钮 X") {
+        } else if (_editingKey == "Button X") {
           JoyStickEvent j_event = JoyStickEvent(KeyName.buttonX);
-          //右为正值
+          // Right is positive value
           if (maxResult!.value < 0) {
             j_event.reverse = true;
           }
           j_event.maxValue = maxResult!.value;
 
           globalSetting.axisMapping[maxResult!.key] = j_event;
-        } else if (_editingKey == "按钮 Y") {
+        } else if (_editingKey == "Button Y") {
           JoyStickEvent j_event = JoyStickEvent(KeyName.buttonY);
-          //右为正值
+          // Right is positive value
           if (maxResult!.value < 0) {
             j_event.reverse = true;
           }
@@ -236,7 +236,7 @@ class _GamepadMappingPageState extends State<GamepadMappingPage> {
         return;
       }
 
-      // 如果当前正在映射，则记录检测到的值
+      // If currently mapping, record detected values
       if (curAbsValue > 0 && _editingKey.isNotEmpty) {
         print("${_recvEvent.key}: ${curAbsValue}");
         if (_mappingResults.containsKey(_recvEvent.key)) {
@@ -254,7 +254,7 @@ class _GamepadMappingPageState extends State<GamepadMappingPage> {
         }
       }
       _msg =
-          '请多次推动摇杆或按键至该位置，当前检测到的值: ${_recvEvent.key}: ${_recvEvent.value.toStringAsFixed(2)},最优值：${maxResult?.key}: ${maxResult?.value.toStringAsFixed(2)} 还需触发检测 ${detect_count - maxCount} 次';
+          'Please move the stick or press the button to this position multiple times. Current detected value: ${_recvEvent.key}: ${_recvEvent.value.toStringAsFixed(2)}, Best value: ${maxResult?.key}: ${maxResult?.value.toStringAsFixed(2)} Still need ${detect_count - maxCount} more detections';
       setState(() {});
     });
   }
@@ -264,18 +264,18 @@ class _GamepadMappingPageState extends State<GamepadMappingPage> {
       scrollDirection: Axis.horizontal,
       child: DataTable(
         columns: const [
-          DataColumn(label: Text('按键')),
-          DataColumn(label: Text('操作')),
+          DataColumn(label: Text('Key')),
+          DataColumn(label: Text('Action')),
         ],
         rows: [
-          _buildDataRow('左摇杆上'),
-          _buildDataRow('左摇杆下'),
-          _buildDataRow('左摇杆左'),
-          _buildDataRow('左摇杆右'),
-          _buildDataRow('右摇杆上'),
-          _buildDataRow('右摇杆下'),
-          _buildDataRow('右摇杆左'),
-          _buildDataRow('右摇杆右'),
+          _buildDataRow('Left Stick Up'),
+          _buildDataRow('Left Stick Down'),
+          _buildDataRow('Left Stick Left'),
+          _buildDataRow('Left Stick Right'),
+          _buildDataRow('Right Stick Up'),
+          _buildDataRow('Right Stick Down'),
+          _buildDataRow('Right Stick Left'),
+          _buildDataRow('Right Stick Right'),
           ...globalSetting.buttonMapping.keys
               .map((key) => _buildDataRow(_translateKey(key))),
         ],
@@ -284,7 +284,7 @@ class _GamepadMappingPageState extends State<GamepadMappingPage> {
   }
 
   void _showPersistentBottomMessage(BuildContext context, String message) {
-    _removePersistentBottomMessage(); // 先移除之前的 OverlayEntry
+    _removePersistentBottomMessage(); // Remove previous OverlayEntry first
     _overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
         bottom: 50.0,
@@ -340,12 +340,12 @@ class _GamepadMappingPageState extends State<GamepadMappingPage> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.grey,
                   ),
-                  child: const Text('取消'),
+                  child: const Text('Cancel'),
                 ),
               ] else ...[
                 ElevatedButton(
                   onPressed: () {
-                    // 开始重新映射
+                    // Start remapping
                     setState(() {
                       _editingKey = key;
                       _mappingResults = {};
@@ -369,16 +369,16 @@ class _GamepadMappingPageState extends State<GamepadMappingPage> {
       "AXIS_Y": AppLocalizations.of(context)!.left_stick_y,
       "AXIS_Z": AppLocalizations.of(context)!.right_stick_x,
       "AXIS_RZ": AppLocalizations.of(context)!.right_stick_y,
-      // "triggerRight": "右扳机",
-      // "triggerLeft": "左扳机",
-      // "buttonLeftRight": "方向键 左/右",
-      // "buttonUpDown": "方向键 上/下",
+      // "triggerRight": "Right Trigger",
+      // "triggerLeft": "Left Trigger",
+      // "buttonLeftRight": "D-Pad Left/Right",
+      // "buttonUpDown": "D-Pad Up/Down",
       "KEYCODE_BUTTON_A": AppLocalizations.of(context)!.button_a,
       "KEYCODE_BUTTON_B": AppLocalizations.of(context)!.button_b,
       "KEYCODE_BUTTON_X": AppLocalizations.of(context)!.button_x,
       "KEYCODE_BUTTON_Y": AppLocalizations.of(context)!.button_y,
-      // "KEYCODE_BUTTON_L1": "按钮 L1",
-      // "KEYCODE_BUTTON_R1": "按钮 R1",
+      // "KEYCODE_BUTTON_L1": "Button L1",
+      // "KEYCODE_BUTTON_R1": "Button R1",
     };
     return translations[key] ?? key;
   }

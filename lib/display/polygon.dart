@@ -14,7 +14,7 @@ class PolygonComponent extends Component {
   PolygonComponent({
     required this.pointList, 
     required this.color,
-    this.enableWaterDropAnimation = false, // 默认启用动画
+    this.enableWaterDropAnimation = false, // Default animation disabled
   }) {
     _animationTime = 0.0;
   }
@@ -35,7 +35,7 @@ class PolygonComponent extends Component {
 
   @override
   void render(Canvas canvas) {
-    // 即使点数不足，也要绘制动画效果
+    // Draw animation effect even if there are insufficient points
     if (enableWaterDropAnimation) {
       _renderWaterDropAnimation(canvas);
     } else if (pointList.length >= 3) {
@@ -61,10 +61,10 @@ class PolygonComponent extends Component {
   }
 
   void _renderWaterDropAnimation(Canvas canvas) {
-    // 如果没有点，使用默认中心点
+    // If there are no points, use default center point
     vm.Vector2 center;
     if (pointList.isEmpty) {
-      // 使用画布中心作为默认中心点
+      // Use canvas center as default center point
       center = vm.Vector2(canvas.getLocalClipBounds().center.dx, canvas.getLocalClipBounds().center.dy);
     } else {
       center = _calculatePolygonCenter();
@@ -132,7 +132,7 @@ class PolygonComponent extends Component {
     List<vm.Vector2> scaledPoints = [];
     
     if (pointList.isEmpty) {
-      // 如果没有点，创建一个简单的圆形动画
+      // If there are no points, create a simple circular animation
       const int numPoints = 8;
       const double radius = 20.0;
       
@@ -143,7 +143,7 @@ class PolygonComponent extends Component {
         scaledPoints.add(vm.Vector2(x, y));
       }
     } else {
-      // 有点时，正常缩放
+      // When points exist, scale normally
       for (vm.Vector2 point in pointList) {
         vm.Vector2 direction = point - center;
         vm.Vector2 scaledPoint = center + direction * scale;
